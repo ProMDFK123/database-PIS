@@ -12,8 +12,8 @@ Estos trabajos buscan ayudar a cubrir necesidades como:
 El sistema conecta a los estudiantes con oferentes (personas o instituciones que publican empleos temporales), facilitando la gestión de ofertas, postulaciones y evaluaciones.
 
 ## 🧠 Tecnologías Utilizadas
--Visual Paradigm → Diseño del modelo conceptual y lógico  
--PostgreSQL → Implementación del modelo físico
+- Visual Paradigm → Diseño del modelo conceptual y lógico
+- PostgreSQL → Implementación del modelo físico
 
 ## ⚙️ Cómo Abrir el Proyecto
 1. Instalar Visual Paradigm (versión 17.0 o superior).
