@@ -30,11 +30,11 @@ El sistema conecta a los estudiantes con oferentes (personas o instituciones que
 
 ## 🧩 Estructura del Modelo
 El modelo considera los siguientes elementos principales:
--Usuario (atributos comunes: correo, teléfono, contraseña, rol, estado de sesión y bloqueo)
--Estudiante, Oferente (persona o empresa) y Administrador
--OfertaLaboral → publicación de trabajos temporales
--Postulación → aplicación de estudiantes a ofertas
--Evaluación → retroalimentación entre oferente y postulante  
+- Usuario (atributos comunes: correo, teléfono, contraseña, rol, estado de sesión y bloqueo)
+- Estudiante, Oferente (persona o empresa) y Administrador
+- Oferta → publicación de ofertas de trabajo o elementos de compra-venta
+- Postulación → aplicación de estudiantes a ofertas
+- Evaluación → retroalimentación entre oferente y postulante  
 El diseño busca mantener la integridad y trazabilidad de las relaciones entre los actores del sistema, priorizando la simplicidad y la escalabilidad.
 
 ## 👥 Autores
