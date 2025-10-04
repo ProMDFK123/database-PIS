@@ -8,11 +8,11 @@ Estos trabajos buscan ayudar a cubrir necesidades como:
 - Alimentación 🍽️
 - Arriendo 🏠
 - Aranceles universitarios 💸
-- Transporte público 🚍
+- Transporte público 🚍  
 El sistema conecta a los estudiantes con oferentes (personas o instituciones que publican empleos temporales), facilitando la gestión de ofertas, postulaciones y evaluaciones.
 
 ## 🧠 Tecnologías Utilizadas
--Visual Paradigm → Diseño del modelo conceptual y lógico
+-Visual Paradigm → Diseño del modelo conceptual y lógico  
 -PostgreSQL → Implementación del modelo físico
 
 ## ⚙️ Cómo Abrir el Proyecto
@@ -34,7 +34,7 @@ El modelo considera los siguientes elementos principales:
 -Estudiante, Oferente (persona o empresa) y Administrador
 -OfertaLaboral → publicación de trabajos temporales
 -Postulación → aplicación de estudiantes a ofertas
--Evaluación → retroalimentación entre oferente y postulante
+-Evaluación → retroalimentación entre oferente y postulante  
 El diseño busca mantener la integridad y trazabilidad de las relaciones entre los actores del sistema, priorizando la simplicidad y la escalabilidad.
 
 ## 👥 Autores
