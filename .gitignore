@@ -1,0 +1,65 @@
+## .NET / C# ##
+# Compilación
+bin/
+obj/
+[Bb]uild/
+[Ll]og/
+
+# Archivos generados por usuario
+*.user
+*.userosscache
+*.suo
+*.sln.docstates
+*.userprefs
+
+# Archivos de cache y temporales
+*.tmp
+*.temp
+*.log
+*.vspscc
+*.vssscc
+*.pidb
+*.svclog
+*.scc
+.vs/
+.vscode/
+.idea/
+
+# Publicaciones y empaquetado
+publish/
+out/
+artifacts/
+TestResults/
+*.dbmdl
+*.bak
+
+# Configuraciones locales
+appsettings.Development.json
+appsettings.Local.json
+appsettings.*.local.json
+secrets.json
+
+# Entity Framework
+Migrations/
+*.sqlite
+*.db
+*.mdf
+*.ldf
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Git
+*.orig
+*.patch
+*.rej
+
+# Archivos de entorno
+.env
+.env.*
+!.env.example
+
+# Docker
+docker-compose.override.yml
