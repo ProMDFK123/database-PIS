@@ -43,6 +43,6 @@ dotnet run
 El modelo de base de datos (en formato Visual Paradigm .vpp) se encuentra en: /database model/PIS.vpp
 
 ## 🧠 Autor
-Estudiantes de Proyecto Integrador Software II-2025
-Proyecto académico - Universidad Católica del Norte
+Estudiantes de Proyecto Integrador Software II-2025  
+Proyecto académico - Universidad Católica del Norte  
 Facultad de Ingeniería y Ciencias Geológicas
