@@ -16,7 +16,7 @@ Incluye una arquitectura limpia basada en capas (Controllers, Services, Reposito
 ### 1️⃣ Clonar el repositorio
 ```bash
 git clone https://github.com/ProMDFK123/backend-PIS.git
-cd database-PIS/bolsafeucn_back
+cd backend-PIS/bolsafeucn_back
 ```
 ### 2️⃣ Restaurar dependencias
 ```bash
