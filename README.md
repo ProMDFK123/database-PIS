@@ -1,12 +1,11 @@
-# 🧩 Bolsa FECN - Backend
-Backend del proyecto **Bolsa FECN**, desarrollado con **.NET 9.0** y **Entity Framework Core**, conectado a **PostgreSQL**.  
-Incluye una arquitectura limpia basada en capas (Controllers, Services, Repositories, etc.) y documentación automática con **Swagger**.
+# 🧩 Bolsa FEUCN - Backend
+Backend del proyecto **Bolsa FEUCN**, desarrollado con **.NET 9.0** y **Entity Framework Core**, conectado a **PostgreSQL**.  
+Incluye una arquitectura limpia basada en capas (Controllers, Services, Repositories, etc.).
 
 ## 🚀 Tecnologías utilizadas
 - **.NET 9.0**
 - **Entity Framework Core**
 - **PostgreSQL**
-- **Swashbuckle.AspNetCore (Swagger UI)**
 - **Dependency Injection (DI)**
 - **Data Transfer Objects (DTOs)**
 - **Repository Pattern**
@@ -16,7 +15,7 @@ Incluye una arquitectura limpia basada en capas (Controllers, Services, Reposito
 ## 🛠️ Configuración inicial
 ### 1️⃣ Clonar el repositorio
 ```bash
-git clone https://github.com/ProMDFK123/database-PIS.git
+git clone https://github.com/ProMDFK123/backend-PIS.git
 cd database-PIS/bolsafeucn_back
 ```
 ### 2️⃣ Restaurar dependencias
