@@ -14,21 +14,19 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             _repo = repo;
         }
 
-        public async Task<IEnumerable<Usuario>> GetUsuariosAsync()
+        public async Task<IEnumerable<GeneralUser>> GetUsuariosAsync()
         {
             return await _repo.GetAllAsync();
         }
 
-        public async Task<Usuario?> GetUsuarioAsync(int id)
+        public async Task<GeneralUser?> GetUsuarioAsync(int id)
         {
             return await _repo.GetByIdAsync(id);
         }
 
-        public async Task<Usuario> CrearUsuarioAsync(UsuarioDto dto)
+        public async Task<GeneralUser> CrearUsuarioAsync(UsuarioDto dto)
         {
-            var usuario = new Usuario { Nombre = dto.Nombre, Correo = dto.Correo };
-
-            return await _repo.AddAsync(usuario);
+            throw new NotImplementedException();
         }
 
         public async Task<bool> EliminarUsuarioAsync(int id)

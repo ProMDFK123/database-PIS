@@ -14,17 +14,17 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Implements
             _context = context;
         }
 
-        public async Task<IEnumerable<Usuario>> GetAllAsync()
+        public async Task<IEnumerable<GeneralUser>> GetAllAsync()
         {
             return await _context.Usuarios.ToListAsync();
         }
 
-        public async Task<Usuario?> GetByIdAsync(int id)
+        public async Task<GeneralUser?> GetByIdAsync(int id)
         {
             return await _context.Usuarios.FindAsync(id);
         }
 
-        public async Task<Usuario> AddAsync(Usuario usuario)
+        public async Task<GeneralUser> AddAsync(GeneralUser usuario)
         {
             _context.Usuarios.Add(usuario);
             await _context.SaveChangesAsync();

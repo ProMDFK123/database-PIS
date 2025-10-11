@@ -4,9 +4,9 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Interfaces
 {
     public interface IUsuarioRepository
     {
-        Task<IEnumerable<Usuario>> GetAllAsync();
-        Task<Usuario?> GetByIdAsync(int id);
-        Task<Usuario> AddAsync(Usuario usuario);
+        Task<IEnumerable<GeneralUser>> GetAllAsync();
+        Task<GeneralUser?> GetByIdAsync(int id);
+        Task<GeneralUser> AddAsync(GeneralUser usuario);
         Task<bool> DeleteAsync(int id);
     }
 }
