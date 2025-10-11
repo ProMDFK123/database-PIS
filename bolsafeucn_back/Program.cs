@@ -1,7 +1,8 @@
-using bolsafeucn_back.src.data;
-using bolsafeucn_back.src.interfaces;
-using bolsafeucn_back.src.repositories;
-using bolsafeucn_back.src.services;
+using bolsafeucn_back.src.Application.Services.Implements;
+using bolsafeucn_back.src.Application.Services.Interfaces;
+using bolsafeucn_back.src.Infrastructure.Data;
+using bolsafeucn_back.src.Infrastructure.Repositories.Implements;
+using bolsafeucn_back.src.Infrastructure.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Swashbuckle.AspNetCore.Swagger;
 using Swashbuckle.AspNetCore.SwaggerGen;

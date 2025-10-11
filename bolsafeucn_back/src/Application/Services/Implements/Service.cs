@@ -3,7 +3,7 @@ using bolsafeucn_back.src.Application.Services.Interfaces;
 using bolsafeucn_back.src.Domain.Models;
 using bolsafeucn_back.src.Infrastructure.Repositories.Interfaces;
 
-namespace bolsafeucn_back.src.Application.Services
+namespace bolsafeucn_back.src.Application.Services.Implements
 {
     public class UsuarioService : IUsuarioService
     {
