@@ -1,9 +1,9 @@
-using bolsafeucn_back.src.data;
-using bolsafeucn_back.src.models;
-using bolsafeucn_back.src.interfaces;
+using bolsafeucn_back.src.Domain.Models;
+using bolsafeucn_back.src.Infrastructure.Data;
+using bolsafeucn_back.src.Infrastructure.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace bolsafeucn_back.src.repositories
+namespace bolsafeucn_back.src.Infrastructure.Repositories.Implements
 {
     public class UsuarioRepository : IUsuarioRepository
     {
@@ -34,7 +34,8 @@ namespace bolsafeucn_back.src.repositories
         public async Task<bool> DeleteAsync(int id)
         {
             var usuario = await _context.Usuarios.FindAsync(id);
-            if (usuario == null) return false;
+            if (usuario == null)
+                return false;
 
             _context.Usuarios.Remove(usuario);
             await _context.SaveChangesAsync();

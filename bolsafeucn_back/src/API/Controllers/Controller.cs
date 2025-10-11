@@ -1,8 +1,9 @@
-using Microsoft.AspNetCore.Mvc;
-using bolsafeucn_back.src.dtos;
+using bolsafeucn_back.src.API.Controllers;
+using bolsafeucn_back.src.Application.DTOs;
 using bolsafeucn_back.src.interfaces;
+using Microsoft.AspNetCore.Mvc;
 
-namespace bolsafeucn_back.src.controllers
+namespace bolsafeucn_back.src.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
@@ -26,7 +27,8 @@ namespace bolsafeucn_back.src.controllers
         public async Task<IActionResult> GetById(int id)
         {
             var usuario = await _service.GetUsuarioAsync(id);
-            if (usuario == null) return NotFound();
+            if (usuario == null)
+                return NotFound();
             return Ok(usuario);
         }
 
@@ -41,7 +43,8 @@ namespace bolsafeucn_back.src.controllers
         public async Task<IActionResult> Delete(int id)
         {
             var result = await _service.EliminarUsuarioAsync(id);
-            if (!result) return NotFound();
+            if (!result)
+                return NotFound();
             return NoContent();
         }
     }

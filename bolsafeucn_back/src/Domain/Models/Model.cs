@@ -1,4 +1,4 @@
-namespace bolsafeucn_back.src.models
+namespace bolsafeucn_back.src.Domain.Models
 {
     public class Usuario
     {

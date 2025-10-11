@@ -1,4 +1,4 @@
-namespace bolsafeucn_back.src.dtos
+namespace bolsafeucn_back.src.Application.DTOs
 {
     public class UsuarioDto
     {

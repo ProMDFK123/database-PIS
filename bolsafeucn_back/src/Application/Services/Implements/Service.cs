@@ -1,8 +1,9 @@
-using bolsafeucn_back.src.dtos;
-using bolsafeucn_back.src.models;
-using bolsafeucn_back.src.interfaces;
+using bolsafeucn_back.src.Application.DTOs;
+using bolsafeucn_back.src.Application.Services.Interfaces;
+using bolsafeucn_back.src.Domain.Models;
+using bolsafeucn_back.src.Infrastructure.Repositories.Interfaces;
 
-namespace bolsafeucn_back.src.services
+namespace bolsafeucn_back.src.Application.Services
 {
     public class UsuarioService : IUsuarioService
     {
@@ -25,11 +26,7 @@ namespace bolsafeucn_back.src.services
 
         public async Task<Usuario> CrearUsuarioAsync(UsuarioDto dto)
         {
-            var usuario = new Usuario
-            {
-                Nombre = dto.Nombre,
-                Correo = dto.Correo
-            };
+            var usuario = new Usuario { Nombre = dto.Nombre, Correo = dto.Correo };
 
             return await _repo.AddAsync(usuario);
         }
