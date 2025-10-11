@@ -7,7 +7,7 @@ namespace bolsafeucn_back.src.Domain.Models
     {
         public int Id { get; set; }
         public required GeneralUser UsuarioGenerico { get; set; }
-        public int UsuarioGenericoId { get; set; }
+        public required int UsuarioGenericoId { get; set; }
         public required string Rut { get; set; }
         public required string NombreEmpresa { get; set; }
         public required string RazonSocial { get; set; }

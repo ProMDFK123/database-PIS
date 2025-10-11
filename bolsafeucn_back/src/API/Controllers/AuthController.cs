@@ -1,20 +1,12 @@
-using bolsafeucn_back.src.API.Controllers;
 using bolsafeucn_back.src.Application.DTOs;
-using bolsafeucn_back.src.interfaces;
+using bolsafeucn_back.src.Application.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace bolsafeucn_back.src.API.Controllers
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class UsuarioController : ControllerBase
+    public class UsuarioController(IUsuarioService usuarioService) : BaseController
     {
-        private readonly IUsuarioService _service;
-
-        public UsuarioController(IUsuarioService service)
-        {
-            _service = service;
-        }
+        private readonly IUsuarioService _service = usuarioService;
 
         [HttpGet]
         public async Task<IActionResult> GetAll()
