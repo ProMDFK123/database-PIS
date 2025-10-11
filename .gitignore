@@ -11,6 +11,8 @@ obj/
 *.suo
 *.sln.docstates
 *.userprefs
+*.lck
+*.vbak
 
 # Archivos de cache y temporales
 *.tmp
