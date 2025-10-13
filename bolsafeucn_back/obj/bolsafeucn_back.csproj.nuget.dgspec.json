@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\pc\\Desktop\\Proyecto\\backend-PIS\\bolsafeucn_back\\bolsafeucn_back.csproj": {}
+    "C:\\Users\\rorro\\OneDrive\\Desktop\\backend-PIS\\bolsafeucn_back\\bolsafeucn_back.csproj": {}
   },
   "projects": {
-    "C:\\Users\\pc\\Desktop\\Proyecto\\backend-PIS\\bolsafeucn_back\\bolsafeucn_back.csproj": {
+    "C:\\Users\\rorro\\OneDrive\\Desktop\\backend-PIS\\bolsafeucn_back\\bolsafeucn_back.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\pc\\Desktop\\Proyecto\\backend-PIS\\bolsafeucn_back\\bolsafeucn_back.csproj",
+        "projectUniqueName": "C:\\Users\\rorro\\OneDrive\\Desktop\\backend-PIS\\bolsafeucn_back\\bolsafeucn_back.csproj",
         "projectName": "bolsafeucn_back",
-        "projectPath": "C:\\Users\\pc\\Desktop\\Proyecto\\backend-PIS\\bolsafeucn_back\\bolsafeucn_back.csproj",
-        "packagesPath": "C:\\Users\\pc\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\pc\\Desktop\\Proyecto\\backend-PIS\\bolsafeucn_back\\obj\\",
+        "projectPath": "C:\\Users\\rorro\\OneDrive\\Desktop\\backend-PIS\\bolsafeucn_back\\bolsafeucn_back.csproj",
+        "packagesPath": "C:\\Users\\rorro\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\rorro\\OneDrive\\Desktop\\backend-PIS\\bolsafeucn_back\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\pc\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\rorro\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net9.0"
@@ -38,7 +38,7 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "9.0.200"
+        "SdkAnalysisLevel": "9.0.300"
       },
       "frameworks": {
         "net9.0": {
@@ -112,7 +112,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.202/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.304/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
