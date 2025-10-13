@@ -37,8 +37,7 @@ TestResults/
 
 # Configuraciones locales
 appsettings.Development.json
-appsettings.Local.json
-appsettings.*.local.json
+appsettings.json
 secrets.json
 
 # Entity Framework
