@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "/Users/sebarivera/Documents/GitHub/BolsaUCN/backend-PIS/bolsafeucn_back/bolsafeucn_back.csproj": {}
+    "C:\\Users\\pc\\Desktop\\Proyecto\\backend-PIS\\bolsafeucn_back\\bolsafeucn_back.csproj": {}
   },
   "projects": {
-    "/Users/sebarivera/Documents/GitHub/BolsaUCN/backend-PIS/bolsafeucn_back/bolsafeucn_back.csproj": {
+    "C:\\Users\\pc\\Desktop\\Proyecto\\backend-PIS\\bolsafeucn_back\\bolsafeucn_back.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/sebarivera/Documents/GitHub/BolsaUCN/backend-PIS/bolsafeucn_back/bolsafeucn_back.csproj",
+        "projectUniqueName": "C:\\Users\\pc\\Desktop\\Proyecto\\backend-PIS\\bolsafeucn_back\\bolsafeucn_back.csproj",
         "projectName": "bolsafeucn_back",
-        "projectPath": "/Users/sebarivera/Documents/GitHub/BolsaUCN/backend-PIS/bolsafeucn_back/bolsafeucn_back.csproj",
-        "packagesPath": "/Users/sebarivera/.nuget/packages/",
-        "outputPath": "/Users/sebarivera/Documents/GitHub/BolsaUCN/backend-PIS/bolsafeucn_back/obj/",
+        "projectPath": "C:\\Users\\pc\\Desktop\\Proyecto\\backend-PIS\\bolsafeucn_back\\bolsafeucn_back.csproj",
+        "packagesPath": "C:\\Users\\pc\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\pc\\Desktop\\Proyecto\\backend-PIS\\bolsafeucn_back\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "/Users/sebarivera/.nuget/NuGet/NuGet.Config"
+          "C:\\Users\\pc\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net9.0"
@@ -38,7 +38,7 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "9.0.300"
+        "SdkAnalysisLevel": "9.0.200"
       },
       "frameworks": {
         "net9.0": {
@@ -72,6 +72,22 @@
               "target": "Package",
               "version": "[9.0.4, )"
             },
+            "Serilog": {
+              "target": "Package",
+              "version": "[4.3.0, )"
+            },
+            "Serilog.AspNetCore": {
+              "target": "Package",
+              "version": "[9.0.0, )"
+            },
+            "Serilog.Settings.Configuration": {
+              "target": "Package",
+              "version": "[9.0.0, )"
+            },
+            "Serilog.Sinks.Console": {
+              "target": "Package",
+              "version": "[6.0.0, )"
+            },
             "Swashbuckle.AspNetCore": {
               "target": "Package",
               "version": "[9.0.6, )"
@@ -96,7 +112,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/9.0.304/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.202/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
