@@ -14,7 +14,7 @@ namespace bolsafeucn_back.src.Domain.Models
         public required string OferenteId { get; set; }
         public required string Titulo { get; set; }
         public required string Descripcion { get; set; }
-        public DateTime FechaPublicacion { get; set; } = DateTime.Now;
+                public DateTime FechaPublicacion { get; set; } = DateTime.Now;
         public DateTime FechaFin { get; set; }
         public DateTime FechaLimite { get; set; }
         public ICollection<Image> Imagenes { get; set; } = new List<Image>();

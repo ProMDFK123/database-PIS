@@ -9,6 +9,7 @@ namespace bolsafeucn_back.src.Infrastructure.Data
     {
         public AppDbContext(DbContextOptions<AppDbContext> options)
             : base(options) { }
+        public DbSet<Offer> Offers { get; set; } // Nota: el nombre debe ser plural (Offers)
 
         public DbSet<GeneralUser> Usuarios { get; set; }
         public DbSet<Disability> Discapacidades { get; set; }
@@ -17,6 +18,8 @@ namespace bolsafeucn_back.src.Infrastructure.Data
         public DbSet<Company> Empresas { get; set; }
         public DbSet<Individual> Particulares { get; set; }
         public DbSet<Admin> Admins { get; set; }
+        public object Offer { get; internal set; }
+
         //public DbSet<Offer> Ofertas { get; set; }
         //public DbSet<JobApplication> Postulaciones { get; set; }
         //public DbSet<Review> Evaluaciones { get; set; }
