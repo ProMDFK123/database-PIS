@@ -1,11 +1,10 @@
 using bolsafeucn_back.src.Domain.Models;
-using bolsafeucn.src.Domain.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace bolsafeucn_back.src.Infrastructure.Data
 {
-    public class AppDbContext : IdentityDbContext<ApplicationUser, Role, int>
+    public class AppDbContext : IdentityDbContext<GeneralUser, Role, int>
     {
         public AppDbContext(DbContextOptions<AppDbContext> options)
             : base(options) { }
@@ -17,6 +16,7 @@ namespace bolsafeucn_back.src.Infrastructure.Data
         public DbSet<Company> Empresas { get; set; }
         public DbSet<Individual> Particulares { get; set; }
         public DbSet<Admin> Admins { get; set; }
+
         //public DbSet<Offer> Ofertas { get; set; }
         //public DbSet<JobApplication> Postulaciones { get; set; }
         //public DbSet<Review> Evaluaciones { get; set; }
@@ -24,12 +24,6 @@ namespace bolsafeucn_back.src.Infrastructure.Data
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
-            builder
-                .Entity<GeneralUser>()
-                .HasOne(u => u.Usuario)
-                .WithOne(u => u.GeneralUser)
-                .HasForeignKey<GeneralUser>(u => u.IdUsuario)
-                .OnDelete(DeleteBehavior.Cascade);
             builder
                 .Entity<Student>()
                 .HasOne(s => s.UsuarioGenerico)

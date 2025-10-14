@@ -4,10 +4,18 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace bolsafeucn_back.src.API.Controllers
 {
-    public class UsuarioController(IUsuarioService usuarioService) : BaseController
+    public class AuthController(IUserService userService) : BaseController
     {
-        private readonly IUsuarioService _service = usuarioService;
+        private readonly IUserService _service = userService;
 
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterStudentDTO registerStudentDTO)
+        {
+            var message = await _service.RegisterStudentAsync(registerStudentDTO, HttpContext);
+            return Ok(new { Message = "Usuario registrado exitosamente" });
+        }
+
+        /*
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -39,5 +47,6 @@ namespace bolsafeucn_back.src.API.Controllers
                 return NotFound();
             return NoContent();
         }
+        */
     }
 }

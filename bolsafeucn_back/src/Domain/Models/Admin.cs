@@ -10,7 +10,6 @@ namespace bolsafeucn_back.src.Domain.Models
         public required int UsuarioGenericoId { get; set; }
         public required string Nombre { get; set; }
         public required string Apellido { get; set; }
-        public required string Rut { get; set; }
         public bool SuperAdmin { get; set; } = false;
     }
 }
