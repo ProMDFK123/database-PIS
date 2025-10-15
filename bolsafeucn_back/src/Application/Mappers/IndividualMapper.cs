@@ -4,7 +4,7 @@ using Mapster;
 
 namespace bolsafeucn_back.src.Application.Mappers
 {
-    public class StudentMapper
+    public class IndividualMapper
     {
         public void ConfigureAllMappings()
         {
@@ -13,24 +13,21 @@ namespace bolsafeucn_back.src.Application.Mappers
 
         public void ConfigureAuthMapping()
         {
-            TypeAdapterConfig<RegisterStudentDTO, GeneralUser>
+            TypeAdapterConfig<RegisterIndividualDTO, GeneralUser>
                 .NewConfig()
                 .Map(dest => dest.UserName, src => src.Email)
                 .Map(dest => dest.Email, src => src.Email)
                 .Map(dest => dest.PhoneNumber, src => src.Telefono)
                 .Map(dest => dest.Rut, src => src.Rut)
-                .Map(dest => dest.TipoUsuario, src => UserType.Estudiante)
+                .Map(dest => dest.TipoUsuario, src => UserType.Particular)
                 .Map(dest => dest.Bloqueado, src => false)
                 .Map(dest => dest.EmailConfirmed, src => false);
 
-            TypeAdapterConfig<RegisterStudentDTO, Student>
+            TypeAdapterConfig<RegisterIndividualDTO, Individual>
                 .NewConfig()
                 .Map(dest => dest.Nombre, src => src.Nombre)
                 .Map(dest => dest.Apellido, src => src.Apellido)
-                .Map(dest => dest.Discapacidad, src => src.Discapacidad)
-                .Map(dest => dest.Calificacion, src => 0.0f)
-                .Map(dest => dest.CurriculumVitae, src => string.Empty)
-                .Map(dest => dest.CartaMotivacional, src => string.Empty);
+                .Map(dest => dest.Calificacion, src => 0.0f);
         }
     }
 }

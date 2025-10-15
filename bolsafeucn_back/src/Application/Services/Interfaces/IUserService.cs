@@ -1,4 +1,4 @@
-using bolsafeucn_back.src.Application.DTOs;
+using bolsafeucn_back.src.Application.DTOs.AuthDTOs;
 using bolsafeucn_back.src.Domain.Models;
 
 namespace bolsafeucn_back.src.Application.Services.Interfaces
@@ -13,6 +13,18 @@ namespace bolsafeucn_back.src.Application.Services.Interfaces
         */
         Task<string> RegisterStudentAsync(
             RegisterStudentDTO registerStudentDTO,
+            HttpContext httpContext
+        );
+        Task<string> RegisterIndividualAsync(
+            RegisterIndividualDTO registerIndividualDTO,
+            HttpContext httpContext
+        );
+        Task<string> RegisterCompanyAsync(
+            RegisterCompanyDTO registerCompanyDTO,
+            HttpContext httpContext
+        );
+        Task<string> RegisterAdminAsync(
+            RegisterAdminDTO registerAdminDTO,
             HttpContext httpContext
         );
     }

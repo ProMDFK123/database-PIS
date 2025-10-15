@@ -4,7 +4,7 @@ using Mapster;
 
 namespace bolsafeucn_back.src.Application.Mappers
 {
-    public class StudentMapper
+    public class CompanyMapper
     {
         public void ConfigureAllMappings()
         {
@@ -13,24 +13,21 @@ namespace bolsafeucn_back.src.Application.Mappers
 
         public void ConfigureAuthMapping()
         {
-            TypeAdapterConfig<RegisterStudentDTO, GeneralUser>
+            TypeAdapterConfig<RegisterCompanyDTO, GeneralUser>
                 .NewConfig()
                 .Map(dest => dest.UserName, src => src.Email)
                 .Map(dest => dest.Email, src => src.Email)
                 .Map(dest => dest.PhoneNumber, src => src.Telefono)
                 .Map(dest => dest.Rut, src => src.Rut)
-                .Map(dest => dest.TipoUsuario, src => UserType.Estudiante)
+                .Map(dest => dest.TipoUsuario, src => UserType.Empresa)
                 .Map(dest => dest.Bloqueado, src => false)
                 .Map(dest => dest.EmailConfirmed, src => false);
 
-            TypeAdapterConfig<RegisterStudentDTO, Student>
+            TypeAdapterConfig<RegisterCompanyDTO, Company>
                 .NewConfig()
-                .Map(dest => dest.Nombre, src => src.Nombre)
-                .Map(dest => dest.Apellido, src => src.Apellido)
-                .Map(dest => dest.Discapacidad, src => src.Discapacidad)
-                .Map(dest => dest.Calificacion, src => 0.0f)
-                .Map(dest => dest.CurriculumVitae, src => string.Empty)
-                .Map(dest => dest.CartaMotivacional, src => string.Empty);
+                .Map(dest => dest.NombreEmpresa, src => src.NombreEmpresa)
+                .Map(dest => dest.RazonSocial, src => src.RazonSocial)
+                .Map(dest => dest.Calificacion, src => 0.0f);
         }
     }
 }

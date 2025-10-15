@@ -1,30 +1,39 @@
 using System.ComponentModel.DataAnnotations;
 using bolsafeucn_back.src.Application.Validators;
 
-namespace bolsafeucn_back.src.Application.DTOs
+namespace bolsafeucn_back.src.Application.DTOs.AuthDTOs
 {
-    public class RegisterStudentDTO
+    /// <summary>
+    /// DTO para el registro de un usuario individual.
+    /// </summary>
+    public class RegisterIndividualDTO
     {
         /// <summary>
-        /// Nombre completo del estudiante.
+        /// Nombre del usuario.
         /// </summary>
         [Required(ErrorMessage = "El nombre es obligatorio.")]
+        [RegularExpression(
+            @"^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s\-]+$",
+            ErrorMessage = "El Nombre solo puede contener carácteres del abecedario español."
+        )]
+        [MinLength(2, ErrorMessage = "El nombre debe tener mínimo 2 letras.")]
+        [MaxLength(50, ErrorMessage = "El nombre debe tener máximo 50 letras.")]
         public required string Nombre { get; set; }
 
         /// <summary>
-        /// Apellido completo del estudiante.
+        /// Apellido del usuario.
         /// </summary>
         [Required(ErrorMessage = "El apellido es obligatorio.")]
+        [RegularExpression(
+            @"^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s\-]+$",
+            ErrorMessage = "El Apellido solo puede contener carácteres del abecedario español."
+        )]
+        [MinLength(2, ErrorMessage = "El apellido debe tener mínimo 2 letras.")]
+        [MaxLength(50, ErrorMessage = "El apellido debe tener máximo 50 letras.")]
         public required string Apellido { get; set; }
 
         /// <summary>
-        /// Correo institucional del estudiante.
-        /// </summary>
-        [Required(ErrorMessage = "El correo es obligatorio.")]
-        public required string Email { get; set; }
-
-        /// <summary>
-        /// RUT del estudiante.
+        /// RUT del usuario.
         /// </summary>
         [Required(ErrorMessage = "El RUT es obligatorio.")]
         [RegularExpression(
@@ -35,13 +44,14 @@ namespace bolsafeucn_back.src.Application.DTOs
         public required string Rut { get; set; }
 
         /// <summary>
-        /// Teléfono del estudiante.
+        /// Correo electrónico del usuario.
         /// </summary>
-        [Required(ErrorMessage = "El teléfono es obligatorio.")]
-        public required string Telefono { get; set; }
+        [Required(ErrorMessage = "El correo es obligatorio.")]
+        [EmailAddress(ErrorMessage = "El correo no es válido.")]
+        public required string Email { get; set; }
 
         /// <summary>
-        /// Contraseña del estudiante.
+        /// Contraseña del usuario.
         /// </summary>
         [Required(ErrorMessage = "La contraseña es obligatoria.")]
         [RegularExpression(
@@ -53,10 +63,16 @@ namespace bolsafeucn_back.src.Application.DTOs
         public required string Contraseña { get; set; }
 
         /// <summary>
-        /// Confirmación de la contraseña del estudiante.
+        /// Confirmación de la contraseña del usuario.
         /// </summary>
         [Required(ErrorMessage = "La confirmación de la contraseña es obligatoria.")]
         [Compare("Contraseña", ErrorMessage = "Las contraseñas no coinciden.")]
-        public required string ConfirmacionContraseña { get; set; }
+        public required string ConfirmarContraseña { get; set; }
+
+        /// <summary>
+        /// Teléfono del usuario.
+        /// </summary>
+        [Required(ErrorMessage = "El teléfono es obligatorio.")]
+        public required string Telefono { get; set; }
     }
 }

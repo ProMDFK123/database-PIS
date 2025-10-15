@@ -1,5 +1,8 @@
 namespace bolsafeucn_back.src.Domain.Models
 {
+    /// <summary>
+    /// Enum que representa los tipos de discapacidad.
+    /// </summary>
     public enum Discapacidad
     {
         Ninguna,
@@ -11,7 +14,7 @@ namespace bolsafeucn_back.src.Domain.Models
     }
 
     /// <summary>
-    /// Identificador único del usuario estudiante.
+    /// Clase que representa un estudiante.
     /// </summary>
     public class Student
     {
@@ -20,7 +23,7 @@ namespace bolsafeucn_back.src.Domain.Models
         public required int UsuarioGenericoId { get; set; }
         public required string Nombre { get; set; }
         public required string Apellido { get; set; }
-        public required Disability Discapacidad { get; set; }
+        public required Discapacidad Discapacidad { get; set; }
         public float Calificacion { get; set; }
         public string CurriculumVitae { get; set; } = string.Empty;
         public string CartaMotivacional { get; set; } = string.Empty;

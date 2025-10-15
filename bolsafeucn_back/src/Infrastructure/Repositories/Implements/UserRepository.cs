@@ -58,9 +58,10 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Implements
             var result = await _userManager.CreateAsync(user, password);
             if (result.Succeeded)
             {
-                await _userManager.AddToRoleAsync(user, role);
+                var userRole = await _userManager.AddToRoleAsync(user, role);
+                return userRole.Succeeded;
             }
-            return result.Succeeded;
+            return false;
         }
 
         public async Task<bool> CreateStudentAsync(Student student)
@@ -69,6 +70,28 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Implements
             await _context.SaveChangesAsync();
             return result != null;
         }
+
+        public async Task<bool> CreateIndividualAsync(Individual individual)
+        {
+            var result = await _context.Particulares.AddAsync(individual);
+            await _context.SaveChangesAsync();
+            return result != null;
+        }
+
+        public async Task<bool> CreateCompanyAsync(Company company)
+        {
+            var result = await _context.Empresas.AddAsync(company);
+            await _context.SaveChangesAsync();
+            return result != null;
+        }
+
+        public async Task<bool> CreateAdminAsync(Admin admin, bool superAdmin)
+        {
+            var result = await _context.Administradores.AddAsync(admin);
+            await _context.SaveChangesAsync();
+            return result != null;
+        }
+
         public async Task<IEnumerable<GeneralUser>> GetAllAsync()
         {
             return await _context.Usuarios.ToListAsync();

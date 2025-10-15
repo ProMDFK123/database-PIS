@@ -10,12 +10,12 @@ namespace bolsafeucn_back.src.Infrastructure.Data
             : base(options) { }
 
         public DbSet<GeneralUser> Usuarios { get; set; }
-        public DbSet<Disability> Discapacidades { get; set; }
         public DbSet<Image> Images { get; set; }
         public DbSet<Student> Estudiantes { get; set; }
         public DbSet<Company> Empresas { get; set; }
         public DbSet<Individual> Particulares { get; set; }
-        public DbSet<Admin> Admins { get; set; }
+        public DbSet<Admin> Administradores { get; set; }
+        public DbSet<VerificationCode> VerificationCodes { get; set; }
 
         //public DbSet<Offer> Ofertas { get; set; }
         //public DbSet<JobApplication> Postulaciones { get; set; }

@@ -14,7 +14,7 @@ namespace bolsafeucn_back.src.Domain.Models
     }
 
     /// <summary>
-    /// Identificador único del usuario con los atributos compartidos entre todos los tipos.
+    /// Clase que representa un usuario genérico en el sistema.
     /// </summary>
     public class GeneralUser : IdentityUser<int>
     {

@@ -1,4 +1,4 @@
-using bolsafeucn_back.src.Application.DTOs;
+using bolsafeucn_back.src.Application.DTOs.AuthDTOs;
 using bolsafeucn_back.src.Application.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,11 +8,37 @@ namespace bolsafeucn_back.src.API.Controllers
     {
         private readonly IUserService _service = userService;
 
-        [HttpPost("register")]
+        [HttpPost("register/student")]
         public async Task<IActionResult> Register([FromBody] RegisterStudentDTO registerStudentDTO)
         {
             var message = await _service.RegisterStudentAsync(registerStudentDTO, HttpContext);
-            return Ok(new { Message = "Usuario registrado exitosamente" });
+            return Ok(new { message });
+        }
+
+        [HttpPost("register/individual")]
+        public async Task<IActionResult> Register(
+            [FromBody] RegisterIndividualDTO registerIndividualDTO
+        )
+        {
+            var message = await _service.RegisterIndividualAsync(
+                registerIndividualDTO,
+                HttpContext
+            );
+            return Ok(new { message });
+        }
+
+        [HttpPost("register/company")]
+        public async Task<IActionResult> Register([FromBody] RegisterCompanyDTO registerCompanyDTO)
+        {
+            var message = await _service.RegisterCompanyAsync(registerCompanyDTO, HttpContext);
+            return Ok(new { message });
+        }
+
+        [HttpPost("register/admin")]
+        public async Task<IActionResult> Register([FromBody] RegisterAdminDTO registerAdminDTO)
+        {
+            var message = await _service.RegisterAdminAsync(registerAdminDTO, HttpContext);
+            return Ok(new { message });
         }
 
         /*
