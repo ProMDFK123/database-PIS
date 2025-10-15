@@ -1,3 +1,4 @@
+using bolsafe_ucn.src.Application.Services.Interfaces;
 using bolsafeucn_back.src.Application.DTOs.AuthDTOs;
 using bolsafeucn_back.src.Application.Services.Interfaces;
 using bolsafeucn_back.src.Domain.Models;
@@ -10,17 +11,20 @@ namespace bolsafeucn_back.src.Application.Services.Implements
     {
         private readonly IUserRepository _userRepository;
         private readonly IEmailService _emailService;
+        private readonly ITokenService _tokenService;
         private readonly IVerificationCodeRepository _verificationCodeRepository;
 
         public UserService(
             IUserRepository userRepository,
             IVerificationCodeRepository verificationCodeRepository,
-            IEmailService emailService
+            IEmailService emailService,
+            ITokenService tokenService
         )
         {
             _userRepository = userRepository;
             _emailService = emailService;
             _verificationCodeRepository = verificationCodeRepository;
+            _tokenService = tokenService;
         }
 
         /// <summary>
@@ -242,6 +246,28 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             }
             await _emailService.SendVerificationEmailAsync(user.Email!, newCode.Code);
             return "Usuario registrado exitosamente. Por favor, verifica tu correo electrónico.";
+        }
+
+        public async Task<string> LoginAsync(LoginDTO loginDTO, HttpContext httpContext)
+        {
+            var user = await _userRepository.GetByEmailAsync(loginDTO.Email);
+            if (user == null)
+            {
+                throw new Exception("Credenciales inválidas.");
+            }
+            if (!user.EmailConfirmed)
+            {
+                throw new Exception(
+                    "Por favor, verifica tu correo electrónico antes de iniciar sesión."
+                );
+            }
+            var result = await _userRepository.CheckPasswordAsync(user, loginDTO.Password);
+            if (!result)
+            {
+                throw new Exception("Credenciales inválidas.");
+            }
+            var role = await _userRepository.GetRoleAsync(user);
+            return _tokenService.CreateToken(user, role, loginDTO.RememberMe);
         }
 
         /*public async Task<IEnumerable<GeneralUser>> GetUsuariosAsync()

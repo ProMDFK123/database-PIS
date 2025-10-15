@@ -23,9 +23,7 @@ namespace bolsafeucn_back.src.Application.Services.Interfaces
             RegisterCompanyDTO registerCompanyDTO,
             HttpContext httpContext
         );
-        Task<string> RegisterAdminAsync(
-            RegisterAdminDTO registerAdminDTO,
-            HttpContext httpContext
-        );
+        Task<string> RegisterAdminAsync(RegisterAdminDTO registerAdminDTO, HttpContext httpContext);
+        Task<string> LoginAsync(LoginDTO loginDTO, HttpContext httpContext);
     }
 }

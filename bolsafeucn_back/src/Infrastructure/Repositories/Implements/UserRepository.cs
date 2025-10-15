@@ -92,6 +92,17 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Implements
             return result != null;
         }
 
+        public async Task<bool> CheckPasswordAsync(GeneralUser user, string password)
+        {
+            return await _userManager.CheckPasswordAsync(user, password);
+        }
+
+        public async Task<string> GetRoleAsync(GeneralUser user)
+        {
+            var roles = await _userManager.GetRolesAsync(user);
+            return roles.FirstOrDefault()!;
+        }
+
         public async Task<IEnumerable<GeneralUser>> GetAllAsync()
         {
             return await _context.Usuarios.ToListAsync();
