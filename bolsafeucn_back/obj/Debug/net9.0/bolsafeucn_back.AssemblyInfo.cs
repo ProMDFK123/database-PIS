@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("bolsafeucn_back")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e30906a7a602ab844c15b389d840c0ad8770b4f0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+16f4fa8eab653a620d08b8e7c8f94dde50f059b8")]
 [assembly: System.Reflection.AssemblyProductAttribute("bolsafeucn_back")]
 [assembly: System.Reflection.AssemblyTitleAttribute("bolsafeucn_back")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
