@@ -41,6 +41,13 @@ namespace bolsafeucn_back.src.API.Controllers
             return Ok(new { message });
         }
 
+        [HttpPost("verify-email")]
+        public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailDTO verifyEmailDTO)
+        {
+            var message = await _service.VerifyEmailAsync(verifyEmailDTO, HttpContext);
+            return Ok(new { message });
+        }
+
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDTO loginDTO)
         {

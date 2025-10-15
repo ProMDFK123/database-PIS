@@ -248,6 +248,79 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             return "Usuario registrado exitosamente. Por favor, verifica tu correo electrónico.";
         }
 
+        public async Task<string> VerifyEmailAsync(
+            VerifyEmailDTO verifyEmailDTO,
+            HttpContext httpContext
+        )
+        {
+            var user = await _userRepository.GetByEmailAsync(verifyEmailDTO.Email);
+            if (user == null)
+            {
+                throw new Exception("El usuario no existe.");
+            }
+            if (user.EmailConfirmed)
+            {
+                return "El correo electrónico ya ha sido verificado.";
+            }
+            CodeType type = CodeType.EmailConfirmation;
+            var verificationCode = await _verificationCodeRepository.GetByLatestUserIdAsync(
+                user.Id,
+                type
+            );
+            if (
+                verificationCode.Code != verifyEmailDTO.VerificationCode
+                || DateTime.UtcNow >= verificationCode.Expiracion
+            )
+            {
+                int attempsCountUpdated = await _verificationCodeRepository.IncreaseAttemptsAsync(
+                    user.Id,
+                    type
+                );
+                if (attempsCountUpdated >= 5)
+                {
+                    bool codeDeleteResult = await _verificationCodeRepository.DeleteByUserIdAsync(
+                        user.Id,
+                        type
+                    );
+                    if (codeDeleteResult)
+                    {
+                        bool userDeleteResult = await _userRepository.DeleteAsync(user.Id);
+                        if (userDeleteResult)
+                        {
+                            throw new Exception(
+                                "Se ha alcanzado el límite de intentos. El usuario ha sido eliminado."
+                            );
+                        }
+                    }
+                }
+                if (DateTime.UtcNow >= verificationCode.Expiracion)
+                {
+                    throw new Exception("El código de verificación ha expirado.");
+                }
+                else
+                {
+                    throw new Exception(
+                        $"El código de verificación es incorrecto, quedan {5 - attempsCountUpdated} intentos."
+                    );
+                }
+            }
+            bool emailConfirmed = await _userRepository.ConfirmEmailAsync(user.Email!);
+            if (emailConfirmed)
+            {
+                bool codeDeleteResult = await _verificationCodeRepository.DeleteByUserIdAsync(
+                    user.Id,
+                    type
+                );
+                if (codeDeleteResult)
+                {
+                    await _emailService.SendWelcomeEmailAsync(user.Email!);
+                    return "!Ya puedes iniciar sesión!";
+                }
+                throw new Exception("Error al confirmar el correo electrónico.");
+            }
+            throw new Exception("Error al verificar el correo electrónico.");
+        }
+
         public async Task<string> LoginAsync(LoginDTO loginDTO, HttpContext httpContext)
         {
             var user = await _userRepository.GetByEmailAsync(loginDTO.Email);

@@ -92,6 +92,14 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Implements
             return result != null;
         }
 
+        public async Task<bool> ConfirmEmailAsync(string email)
+        {
+            var result = await _context
+                .Users.Where(u => u.Email == email)
+                .ExecuteUpdateAsync(u => u.SetProperty(user => user.EmailConfirmed, true));
+            return result > 0;
+        }
+
         public async Task<bool> CheckPasswordAsync(GeneralUser user, string password)
         {
             return await _userManager.CheckPasswordAsync(user, password);

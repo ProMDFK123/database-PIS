@@ -15,6 +15,7 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Interfaces
         Task<bool> CheckPasswordAsync(GeneralUser user, string password);
         Task<string> GetRoleAsync(GeneralUser user);
         Task<IEnumerable<GeneralUser>> GetAllAsync();
+        Task<bool> ConfirmEmailAsync(string email);
         Task<GeneralUser?> GetByIdAsync(int id);
         Task<GeneralUser> AddAsync(GeneralUser usuario);
         Task<bool> DeleteAsync(int id);

@@ -11,6 +11,7 @@ namespace bolsafeucn_back.src.Application.Services.Interfaces
         /// <param name="email">El correo electrónico del usuario.</param>
         /// <param name="code">El código de verificación generado.</param>
         Task SendVerificationEmailAsync(string email, string code);
+        Task SendWelcomeEmailAsync(string email);
 
         /// <summary>
         /// Carga una plantilla de correo electrónico.
