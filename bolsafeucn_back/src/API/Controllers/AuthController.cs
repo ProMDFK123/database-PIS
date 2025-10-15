@@ -48,6 +48,13 @@ namespace bolsafeucn_back.src.API.Controllers
             return Ok(new { message });
         }
 
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginDTO loginDTO)
+        {
+            var token = await _service.LoginAsync(loginDTO, HttpContext);
+            return Ok(new { token });
+        }
+
         /*
         [HttpGet]
         public async Task<IActionResult> GetAll()

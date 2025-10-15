@@ -24,9 +24,9 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Interfaces
         {
             var verificationCode = await _context
                 .VerificationCodes.Where(vc =>
-                    vc.UsuarioGenericoId == userId && vc.TipoCodigo == codeType
+                    vc.GeneralUserId == userId && vc.CodeType == codeType
                 )
-                .OrderByDescending(vc => vc.CreadoEn)
+                .OrderByDescending(vc => vc.CreatedAt)
                 .FirstOrDefaultAsync();
             return verificationCode!;
         }
@@ -35,16 +35,16 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Interfaces
         {
             var verificationCode = await _context
                 .VerificationCodes.Where(vc =>
-                    vc.UsuarioGenericoId == userId && vc.TipoCodigo == codeType
+                    vc.GeneralUserId == userId && vc.CodeType == codeType
                 )
-                .OrderByDescending(vc => vc.CreadoEn)
-                .ExecuteUpdateAsync(vc => vc.SetProperty(v => v.Intentos, v => v.Intentos + 1));
+                .OrderByDescending(vc => vc.CreatedAt)
+                .ExecuteUpdateAsync(vc => vc.SetProperty(v => v.Attempts, v => v.Attempts + 1));
             return await _context
                 .VerificationCodes.Where(vc =>
-                    vc.UsuarioGenericoId == userId && vc.TipoCodigo == codeType
+                    vc.GeneralUserId == userId && vc.CodeType == codeType
                 )
-                .OrderByDescending(vc => vc.CreadoEn)
-                .Select(vc => vc.Intentos)
+                .OrderByDescending(vc => vc.CreatedAt)
+                .Select(vc => vc.Attempts)
                 .FirstAsync();
         }
 
@@ -52,11 +52,11 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Interfaces
         {
             await _context
                 .VerificationCodes.Where(vc =>
-                    vc.UsuarioGenericoId == userId && vc.TipoCodigo == codeType
+                    vc.GeneralUserId == userId && vc.CodeType == codeType
                 )
                 .ExecuteDeleteAsync();
             var exists = await _context.VerificationCodes.AnyAsync(vc =>
-                vc.UsuarioGenericoId == userId && vc.TipoCodigo == codeType
+                vc.GeneralUserId == userId && vc.CodeType == codeType
             );
             return !exists;
         }

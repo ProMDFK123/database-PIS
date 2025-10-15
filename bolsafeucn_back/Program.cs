@@ -1,3 +1,4 @@
+using bolsafe_ucn.src.Application.Services.Interfaces;
 using bolsafeucn_back.src.Application.Infrastructure.Data;
 using bolsafeucn_back.src.Application.Mappers;
 using bolsafeucn_back.src.Application.Services.Implements;
@@ -91,6 +92,7 @@ builder.Services.AddScoped<AdminMapper>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IVerificationCodeRepository, VerificationCodeRepository>();
 #endregion
 

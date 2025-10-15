@@ -6,10 +6,10 @@ namespace bolsafeucn_back.src.Domain.Models
     public class Company
     {
         public int Id { get; set; }
-        public required GeneralUser UsuarioGenerico { get; set; }
-        public required int UsuarioGenericoId { get; set; }
-        public required string NombreEmpresa { get; set; }
-        public required string RazonSocial { get; set; }
-        public float Calificacion { get; set; }
+        public required GeneralUser GeneralUser { get; set; }
+        public required int GeneralUserId { get; set; }
+        public required string CompanyName { get; set; }
+        public required string LegalName { get; set; }
+        public float Rating { get; set; }
     }
 }

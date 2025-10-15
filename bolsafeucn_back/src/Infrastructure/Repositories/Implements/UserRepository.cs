@@ -34,7 +34,7 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Implements
         /// <returns>True si el correo electrónico ya está registrado, de lo contrario false.</returns>
         public async Task<bool> ExistsByEmailAsync(string email)
         {
-            return await _context.Usuarios.AnyAsync(u => u.Email == email);
+            return await _context.Users.AnyAsync(u => u.Email == email);
         }
 
         /// <summary>
@@ -44,7 +44,7 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Implements
         /// <returns>True si el RUT ya está registrado, de lo contrario false.</returns>
         public async Task<bool> ExistsByRutAsync(string rut)
         {
-            return await _context.Usuarios.AnyAsync(e => e.Rut == rut);
+            return await _context.Users.AnyAsync(e => e.Rut == rut);
         }
 
         /// <summary>
@@ -66,28 +66,28 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Implements
 
         public async Task<bool> CreateStudentAsync(Student student)
         {
-            var result = await _context.Estudiantes.AddAsync(student);
+            var result = await _context.Students.AddAsync(student);
             await _context.SaveChangesAsync();
             return result != null;
         }
 
         public async Task<bool> CreateIndividualAsync(Individual individual)
         {
-            var result = await _context.Particulares.AddAsync(individual);
+            var result = await _context.Individuals.AddAsync(individual);
             await _context.SaveChangesAsync();
             return result != null;
         }
 
         public async Task<bool> CreateCompanyAsync(Company company)
         {
-            var result = await _context.Empresas.AddAsync(company);
+            var result = await _context.Companies.AddAsync(company);
             await _context.SaveChangesAsync();
             return result != null;
         }
 
         public async Task<bool> CreateAdminAsync(Admin admin, bool superAdmin)
         {
-            var result = await _context.Administradores.AddAsync(admin);
+            var result = await _context.Admins.AddAsync(admin);
             await _context.SaveChangesAsync();
             return result != null;
         }
@@ -100,30 +100,41 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Implements
             return result > 0;
         }
 
+        public async Task<bool> CheckPasswordAsync(GeneralUser user, string password)
+        {
+            return await _userManager.CheckPasswordAsync(user, password);
+        }
+
+        public async Task<string> GetRoleAsync(GeneralUser user)
+        {
+            var roles = await _userManager.GetRolesAsync(user);
+            return roles.FirstOrDefault()!;
+        }
+
         public async Task<IEnumerable<GeneralUser>> GetAllAsync()
         {
-            return await _context.Usuarios.ToListAsync();
+            return await _context.Users.ToListAsync();
         }
 
         public async Task<GeneralUser?> GetByIdAsync(int id)
         {
-            return await _context.Usuarios.FindAsync(id);
+            return await _context.Users.FindAsync(id);
         }
 
-        public async Task<GeneralUser> AddAsync(GeneralUser usuario)
+        public async Task<GeneralUser> AddAsync(GeneralUser user)
         {
-            _context.Usuarios.Add(usuario);
+            _context.Users.Add(user);
             await _context.SaveChangesAsync();
-            return usuario;
+            return user;
         }
 
         public async Task<bool> DeleteAsync(int id)
         {
-            var usuario = await _context.Usuarios.FindAsync(id);
-            if (usuario == null)
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
                 return false;
 
-            _context.Usuarios.Remove(usuario);
+            _context.Users.Remove(user);
             await _context.SaveChangesAsync();
             return true;
         }

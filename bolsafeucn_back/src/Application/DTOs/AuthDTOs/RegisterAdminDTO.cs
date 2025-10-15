@@ -22,14 +22,14 @@ namespace bolsafeucn_back.src.Application.DTOs.AuthDTOs
         )]
         [MinLength(8, ErrorMessage = "La contraseña debe tener al menos 8 caracteres")]
         [MaxLength(20, ErrorMessage = "La contraseña debe tener como máximo 20 caracteres")]
-        public required string Contraseña { get; set; }
+        public required string Password { get; set; }
 
         /// <summary>
         /// Confirmación de la contraseña del usuario.
         /// </summary>
         [Required(ErrorMessage = "La confirmación de la contraseña es obligatoria.")]
-        [Compare("Contraseña", ErrorMessage = "Las contraseñas no coinciden.")]
-        public required string ConfirmarContraseña { get; set; }
+        [Compare("Password", ErrorMessage = "Las contraseñas no coinciden.")]
+        public required string ConfirmPassword { get; set; }
 
         /// <summary>
         /// Nombre del usuario.
@@ -41,7 +41,7 @@ namespace bolsafeucn_back.src.Application.DTOs.AuthDTOs
         )]
         [MinLength(2, ErrorMessage = "El nombre debe tener mínimo 2 letras.")]
         [MaxLength(50, ErrorMessage = "El nombre debe tener máximo 50 letras.")]
-        public required string Nombre { get; set; }
+        public required string Name { get; set; }
 
         /// <summary>
         /// Apellido del usuario.
@@ -53,7 +53,7 @@ namespace bolsafeucn_back.src.Application.DTOs.AuthDTOs
         )]
         [MinLength(2, ErrorMessage = "El apellido debe tener mínimo 2 letras.")]
         [MaxLength(50, ErrorMessage = "El apellido debe tener máximo 50 letras.")]
-        public required string Apellido { get; set; }
+        public required string LastName { get; set; }
 
         /// <summary>
         /// RUT del usuario.
@@ -70,7 +70,7 @@ namespace bolsafeucn_back.src.Application.DTOs.AuthDTOs
         /// Teléfono del usuario.
         /// </summary>
         [Required(ErrorMessage = "El teléfono es obligatorio.")]
-        public required string Telefono { get; set; }
+        public required string PhoneNumber { get; set; }
 
         /// <summary>
         /// Indica si el administrador es SuperAdmin.

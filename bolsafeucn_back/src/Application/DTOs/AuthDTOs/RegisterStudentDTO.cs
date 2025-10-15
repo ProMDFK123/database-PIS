@@ -9,13 +9,13 @@ namespace bolsafeucn_back.src.Application.DTOs.AuthDTOs
         /// Nombre completo del estudiante.
         /// </summary>
         [Required(ErrorMessage = "El nombre es obligatorio.")]
-        public required string Nombre { get; set; }
+        public required string Name { get; set; }
 
         /// <summary>
         /// Apellido completo del estudiante.
         /// </summary>
         [Required(ErrorMessage = "El apellido es obligatorio.")]
-        public required string Apellido { get; set; }
+        public required string LastName { get; set; }
 
         /// <summary>
         /// Correo institucional del estudiante.
@@ -39,7 +39,7 @@ namespace bolsafeucn_back.src.Application.DTOs.AuthDTOs
         /// Teléfono del estudiante.
         /// </summary>
         [Required(ErrorMessage = "El teléfono es obligatorio.")]
-        public required string Telefono { get; set; }
+        public required string PhoneNumber { get; set; }
 
         /// <summary>
         /// Contraseña del estudiante.
@@ -51,14 +51,14 @@ namespace bolsafeucn_back.src.Application.DTOs.AuthDTOs
         )]
         [MinLength(8, ErrorMessage = "La contraseña debe tener al menos 8 caracteres")]
         [MaxLength(20, ErrorMessage = "La contraseña debe tener como máximo 20 caracteres")]
-        public required string Contraseña { get; set; }
+        public required string Password { get; set; }
 
         /// <summary>
         /// Confirmación de la contraseña del estudiante.
         /// </summary>
         [Required(ErrorMessage = "La confirmación de la contraseña es obligatoria.")]
-        [Compare("Contraseña", ErrorMessage = "Las contraseñas no coinciden.")]
-        public required string ConfirmarContraseña { get; set; }
+        [Compare("Password", ErrorMessage = "Las contraseñas no coinciden.")]
+        public required string ConfirmPassword { get; set; }
 
         /// <summary>
         /// Discapacidad del estudiante.
@@ -68,6 +68,6 @@ namespace bolsafeucn_back.src.Application.DTOs.AuthDTOs
             @"^(Ninguna|Visual|Auditiva|Motriz|Cognitiva|Otra)$",
             ErrorMessage = "El tipo de discapacidad no es válido."
         )]
-        public required string Discapacidad { get; set; }
+        public required string Disability { get; set; }
     }
 }
