@@ -1,4 +1,4 @@
-namespace bolsafeucn_back.src.Application.DTOs.BaseResponse
+namespace bolsafeucn_back.src.Application.DTO.BaseResponse
 {
     /// <summary>
     /// Standard response wrapper for API responses.

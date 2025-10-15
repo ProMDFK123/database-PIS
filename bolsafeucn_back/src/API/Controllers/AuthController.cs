@@ -1,4 +1,4 @@
-using bolsafeucn_back.src.Application.DTOs;
+using bolsafeucn_back.src.Application.DTO;
 using bolsafeucn_back.src.Application.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
