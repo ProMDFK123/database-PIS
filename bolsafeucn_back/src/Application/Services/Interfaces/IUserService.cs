@@ -27,5 +27,6 @@ namespace bolsafeucn_back.src.Application.Services.Interfaces
             RegisterAdminDTO registerAdminDTO,
             HttpContext httpContext
         );
+        Task<string> VerifyEmailAsync(VerifyEmailDTO verifyEmailDTO, HttpContext httpContext);
     }
 }
