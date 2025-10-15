@@ -1,20 +1,349 @@
-using bolsafeucn_back.src.Application.DTOs;
+using bolsafe_ucn.src.Application.Services.Interfaces;
+using bolsafeucn_back.src.Application.DTOs.AuthDTOs;
 using bolsafeucn_back.src.Application.Services.Interfaces;
 using bolsafeucn_back.src.Domain.Models;
 using bolsafeucn_back.src.Infrastructure.Repositories.Interfaces;
+using Mapster;
 
 namespace bolsafeucn_back.src.Application.Services.Implements
 {
-    public class UsuarioService : IUsuarioService
+    public class UserService : IUserService
     {
-        private readonly IUsuarioRepository _repo;
+        private readonly IUserRepository _userRepository;
+        private readonly IEmailService _emailService;
+        private readonly ITokenService _tokenService;
+        private readonly IVerificationCodeRepository _verificationCodeRepository;
 
-        public UsuarioService(IUsuarioRepository repo)
+        public UserService(
+            IUserRepository userRepository,
+            IVerificationCodeRepository verificationCodeRepository,
+            IEmailService emailService,
+            ITokenService tokenService
+        )
         {
-            _repo = repo;
+            _userRepository = userRepository;
+            _emailService = emailService;
+            _verificationCodeRepository = verificationCodeRepository;
+            _tokenService = tokenService;
         }
 
-        public async Task<IEnumerable<GeneralUser>> GetUsuariosAsync()
+        /// <summary>
+        /// Registra un nuevo estudiante en el sistema.
+        /// </summary>
+        /// <param name="registerStudentDTO">DTO con la información del estudiante</param>
+        /// <param name="httpContext">Contexto HTTP</param>
+        /// <returns>Mensaje de éxito o error</returns>
+        public async Task<string> RegisterStudentAsync(
+            RegisterStudentDTO registerStudentDTO,
+            HttpContext httpContext
+        )
+        {
+            bool registrado = await _userRepository.ExistsByEmailAsync(registerStudentDTO.Email);
+            if (registrado)
+            {
+                throw new Exception("El correo electrónico ya está en uso.");
+            }
+            registrado = await _userRepository.ExistsByRutAsync(registerStudentDTO.Rut);
+            if (registrado)
+            {
+                throw new Exception("El RUT ya está en uso.");
+            }
+            var user = registerStudentDTO.Adapt<GeneralUser>();
+            user.PhoneNumber = NormalizePhoneNumber(registerStudentDTO.PhoneNumber);
+            var result = await _userRepository.CreateUserAsync(
+                user,
+                registerStudentDTO.Password,
+                "Applicant"
+            );
+            if (result == false)
+            {
+                throw new Exception("Error al crear el usuario.");
+            }
+            var student = registerStudentDTO.Adapt<Student>();
+            student.GeneralUserId = user.Id;
+            result = await _userRepository.CreateStudentAsync(student);
+            if (!result)
+            {
+                throw new Exception("Error al crear el estudiante.");
+            }
+            //Envio email de verificacion
+            string code = new Random().Next(100000, 999999).ToString();
+            VerificationCode verificationCode = new VerificationCode
+            {
+                Code = code,
+                CodeType = CodeType.EmailConfirmation,
+                GeneralUserId = user.Id,
+                Expiration = DateTime.UtcNow.AddHours(1),
+            };
+            var newCode = await _verificationCodeRepository.CreateCodeAsync(verificationCode);
+            if (newCode == null)
+            {
+                throw new Exception("Error al crear el código de verificación.");
+            }
+            await _emailService.SendVerificationEmailAsync(user.Email!, newCode.Code);
+            return "Usuario registrado exitosamente. Por favor, verifica tu correo electrónico.";
+        }
+
+        /// <summary>
+        /// Registra un nuevo usuario particular en el sistema.
+        /// </summary>
+        /// <param name="registerIndividualDTO">Dto de registro del usuario particular</param>
+        /// <param name="httpContext">Contexto HTTP</param>
+        /// <returns>Mensaje de éxito o error</returns>
+        public async Task<string> RegisterIndividualAsync(
+            RegisterIndividualDTO registerIndividualDTO,
+            HttpContext httpContext
+        )
+        {
+            bool registrado = await _userRepository.ExistsByEmailAsync(registerIndividualDTO.Email);
+            if (registrado)
+            {
+                throw new Exception("El correo electrónico ya está en uso.");
+            }
+            registrado = await _userRepository.ExistsByRutAsync(registerIndividualDTO.Rut);
+            if (registrado)
+            {
+                throw new Exception("El RUT ya está en uso.");
+            }
+            var user = registerIndividualDTO.Adapt<GeneralUser>();
+            user.PhoneNumber = NormalizePhoneNumber(registerIndividualDTO.PhoneNumber);
+            var result = await _userRepository.CreateUserAsync(
+                user,
+                registerIndividualDTO.Password,
+                "Offerent"
+            );
+            if (!result)
+            {
+                throw new Exception("Error al crear el usuario.");
+            }
+            var individual = registerIndividualDTO.Adapt<Individual>();
+            individual.GeneralUserId = user.Id;
+            result = await _userRepository.CreateIndividualAsync(individual);
+            if (!result)
+            {
+                throw new Exception("Error al crear el particular.");
+            }
+            //Envio email de verificacion
+            string code = new Random().Next(100000, 999999).ToString();
+            VerificationCode verificationCode = new VerificationCode
+            {
+                Code = code,
+                CodeType = CodeType.EmailConfirmation,
+                GeneralUserId = user.Id,
+                Expiration = DateTime.UtcNow.AddHours(1),
+            };
+            var newCode = await _verificationCodeRepository.CreateCodeAsync(verificationCode);
+            if (newCode == null)
+            {
+                throw new Exception("Error al crear el código de verificación.");
+            }
+            await _emailService.SendVerificationEmailAsync(user.Email!, newCode.Code);
+            return "Usuario registrado exitosamente. Por favor, verifica tu correo electrónico.";
+        }
+
+        public async Task<string> RegisterCompanyAsync(
+            RegisterCompanyDTO registerCompanyDTO,
+            HttpContext httpContext
+        )
+        {
+            bool registrado = await _userRepository.ExistsByEmailAsync(registerCompanyDTO.Email);
+            if (registrado)
+            {
+                throw new Exception("El correo electrónico ya está en uso.");
+            }
+            registrado = await _userRepository.ExistsByRutAsync(registerCompanyDTO.Rut);
+            if (registrado)
+            {
+                throw new Exception("El RUT ya está en uso.");
+            }
+            var user = registerCompanyDTO.Adapt<GeneralUser>();
+            user.PhoneNumber = NormalizePhoneNumber(registerCompanyDTO.PhoneNumber);
+            var result = await _userRepository.CreateUserAsync(
+                user,
+                registerCompanyDTO.Password,
+                "Offerent"
+            );
+            if (!result)
+            {
+                throw new Exception("Error al crear el usuario.");
+            }
+            var company = registerCompanyDTO.Adapt<Company>();
+            company.GeneralUserId = user.Id;
+            result = await _userRepository.CreateCompanyAsync(company);
+            if (!result)
+            {
+                throw new Exception("Error al crear la empresa.");
+            }
+            //Envio email de verificacion
+            string code = new Random().Next(100000, 999999).ToString();
+            VerificationCode verificationCode = new VerificationCode
+            {
+                Code = code,
+                CodeType = CodeType.EmailConfirmation,
+                GeneralUserId = user.Id,
+                Expiration = DateTime.UtcNow.AddHours(1),
+            };
+            var newCode = await _verificationCodeRepository.CreateCodeAsync(verificationCode);
+            if (newCode == null)
+            {
+                throw new Exception("Error al crear el código de verificación.");
+            }
+            await _emailService.SendVerificationEmailAsync(user.Email!, newCode.Code);
+            return "Usuario registrado exitosamente. Por favor, verifica tu correo electrónico.";
+        }
+
+        public async Task<string> RegisterAdminAsync(
+            RegisterAdminDTO registerAdminDTO,
+            HttpContext httpContext
+        )
+        {
+            bool registrado = await _userRepository.ExistsByEmailAsync(registerAdminDTO.Email);
+            if (registrado)
+            {
+                throw new Exception("El correo electrónico ya está en uso.");
+            }
+            registrado = await _userRepository.ExistsByRutAsync(registerAdminDTO.Rut);
+            if (registrado)
+            {
+                throw new Exception("El RUT ya está en uso.");
+            }
+            var user = registerAdminDTO.Adapt<GeneralUser>();
+            user.PhoneNumber = NormalizePhoneNumber(registerAdminDTO.PhoneNumber);
+            string role = "Admin";
+            if (registerAdminDTO.SuperAdmin)
+            {
+                role = "SuperAdmin";
+            }
+            var result = await _userRepository.CreateUserAsync(
+                user,
+                registerAdminDTO.Password,
+                role
+            );
+            if (!result)
+            {
+                throw new Exception("Error al crear el usuario.");
+            }
+            var admin = registerAdminDTO.Adapt<Admin>();
+            admin.GeneralUserId = user.Id;
+            result = await _userRepository.CreateAdminAsync(admin, registerAdminDTO.SuperAdmin);
+            if (!result)
+            {
+                throw new Exception("Error al crear el administrador.");
+            }
+            //Envio email de verificacion
+            string code = new Random().Next(100000, 999999).ToString();
+            VerificationCode verificationCode = new VerificationCode
+            {
+                Code = code,
+                CodeType = CodeType.EmailConfirmation,
+                GeneralUserId = user.Id,
+                Expiration = DateTime.UtcNow.AddHours(1),
+            };
+            var newCode = await _verificationCodeRepository.CreateCodeAsync(verificationCode);
+            if (newCode == null)
+            {
+                throw new Exception("Error al crear el código de verificación.");
+            }
+            await _emailService.SendVerificationEmailAsync(user.Email!, newCode.Code);
+            return "Usuario registrado exitosamente. Por favor, verifica tu correo electrónico.";
+        }
+
+        public async Task<string> VerifyEmailAsync(
+            VerifyEmailDTO verifyEmailDTO,
+            HttpContext httpContext
+        )
+        {
+            var user = await _userRepository.GetByEmailAsync(verifyEmailDTO.Email);
+            if (user == null)
+            {
+                throw new Exception("El usuario no existe.");
+            }
+            if (user.EmailConfirmed)
+            {
+                return "El correo electrónico ya ha sido verificado.";
+            }
+            CodeType type = CodeType.EmailConfirmation;
+            var verificationCode = await _verificationCodeRepository.GetByLatestUserIdAsync(
+                user.Id,
+                type
+            );
+            if (
+                verificationCode.Code != verifyEmailDTO.VerificationCode
+                || DateTime.UtcNow >= verificationCode.Expiration
+            )
+            {
+                int attempsCountUpdated = await _verificationCodeRepository.IncreaseAttemptsAsync(
+                    user.Id,
+                    type
+                );
+                if (attempsCountUpdated >= 5)
+                {
+                    bool codeDeleteResult = await _verificationCodeRepository.DeleteByUserIdAsync(
+                        user.Id,
+                        type
+                    );
+                    if (codeDeleteResult)
+                    {
+                        bool userDeleteResult = await _userRepository.DeleteAsync(user.Id);
+                        if (userDeleteResult)
+                        {
+                            throw new Exception(
+                                "Se ha alcanzado el límite de intentos. El usuario ha sido eliminado."
+                            );
+                        }
+                    }
+                }
+                if (DateTime.UtcNow >= verificationCode.Expiration)
+                {
+                    throw new Exception("El código de verificación ha expirado.");
+                }
+                else
+                {
+                    throw new Exception(
+                        $"El código de verificación es incorrecto, quedan {5 - attempsCountUpdated} intentos."
+                    );
+                }
+            }
+            bool emailConfirmed = await _userRepository.ConfirmEmailAsync(user.Email!);
+            if (emailConfirmed)
+            {
+                bool codeDeleteResult = await _verificationCodeRepository.DeleteByUserIdAsync(
+                    user.Id,
+                    type
+                );
+                if (codeDeleteResult)
+                {
+                    await _emailService.SendWelcomeEmailAsync(user.Email!);
+                    return "!Ya puedes iniciar sesión!";
+                }
+                throw new Exception("Error al confirmar el correo electrónico.");
+            }
+            throw new Exception("Error al verificar el correo electrónico.");
+        }
+
+        public async Task<string> LoginAsync(LoginDTO loginDTO, HttpContext httpContext)
+        {
+            var user = await _userRepository.GetByEmailAsync(loginDTO.Email);
+            if (user == null)
+            {
+                throw new Exception("Credenciales inválidas.");
+            }
+            if (!user.EmailConfirmed)
+            {
+                throw new Exception(
+                    "Por favor, verifica tu correo electrónico antes de iniciar sesión."
+                );
+            }
+            var result = await _userRepository.CheckPasswordAsync(user, loginDTO.Password);
+            if (!result)
+            {
+                throw new Exception("Credenciales inválidas.");
+            }
+            var role = await _userRepository.GetRoleAsync(user);
+            return _tokenService.CreateToken(user, role, loginDTO.RememberMe);
+        }
+
+        /*public async Task<IEnumerable<GeneralUser>> GetUsuariosAsync()
         {
             return await _repo.GetAllAsync();
         }
@@ -32,6 +361,11 @@ namespace bolsafeucn_back.src.Application.Services.Implements
         public async Task<bool> EliminarUsuarioAsync(int id)
         {
             return await _repo.DeleteAsync(id);
+        }*/
+        public string NormalizePhoneNumber(string phoneNumber)
+        {
+            var digits = new string(phoneNumber.Where(char.IsDigit).ToArray());
+            return "+56 " + digits;
         }
     }
 }
