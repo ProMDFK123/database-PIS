@@ -2,9 +2,20 @@ using bolsafeucn_back.src.Domain.Models;
 
 namespace bolsafeucn_back.src.Infrastructure.Repositories.Interfaces
 {
-    public interface IUsuarioRepository
+    public interface IUserRepository
     {
+        Task<GeneralUser?> GetByEmailAsync(string email);
+        Task<bool> ExistsByEmailAsync(string email);
+        Task<bool> ExistsByRutAsync(string rut);
+        Task<bool> CreateUserAsync(GeneralUser user, string password, string role);
+        Task<bool> CreateStudentAsync(Student student);
+        Task<bool> CreateIndividualAsync(Individual individual);
+        Task<bool> CreateCompanyAsync(Company company);
+        Task<bool> CreateAdminAsync(Admin admin, bool superAdmin);
+        Task<bool> CheckPasswordAsync(GeneralUser user, string password);
+        Task<string> GetRoleAsync(GeneralUser user);
         Task<IEnumerable<GeneralUser>> GetAllAsync();
+        Task<bool> ConfirmEmailAsync(string email);
         Task<GeneralUser?> GetByIdAsync(int id);
         Task<GeneralUser> AddAsync(GeneralUser usuario);
         Task<bool> DeleteAsync(int id);
