@@ -16,10 +16,10 @@ namespace bolsafeucn_back.src.Domain.Models
     {
         public int Id { get; set; }
         public required string Code { get; set; }
-        public required CodeType TipoCodigo { get; set; }
-        public required int UsuarioGenericoId { get; set; }
-        public int Intentos { get; set; } = 0;
-        public required DateTime Expiracion { get; set; }
-        public DateTime CreadoEn { get; set; } = DateTime.UtcNow;
+        public required CodeType CodeType { get; set; }
+        public required int GeneralUserId { get; set; }
+        public int Attempts { get; set; } = 0;
+        public required DateTime Expiration { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

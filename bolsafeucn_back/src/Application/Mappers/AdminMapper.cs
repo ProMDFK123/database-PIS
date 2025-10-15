@@ -17,16 +17,16 @@ namespace bolsafeucn_back.src.Application.Mappers
                 .NewConfig()
                 .Map(dest => dest.UserName, src => src.Email)
                 .Map(dest => dest.Email, src => src.Email)
-                .Map(dest => dest.PhoneNumber, src => src.Telefono)
+                .Map(dest => dest.PhoneNumber, src => src.PhoneNumber)
                 .Map(dest => dest.Rut, src => src.Rut)
-                .Map(dest => dest.TipoUsuario, src => UserType.Empresa)
-                .Map(dest => dest.Bloqueado, src => false)
+                .Map(dest => dest.UserType, src => UserType.Administrador)
+                .Map(dest => dest.Banned, src => false)
                 .Map(dest => dest.EmailConfirmed, src => false);
 
             TypeAdapterConfig<RegisterAdminDTO, Admin>
                 .NewConfig()
-                .Map(dest => dest.Nombre, src => src.Nombre)
-                .Map(dest => dest.Apellido, src => src.Apellido)
+                .Map(dest => dest.Name, src => src.Name)
+                .Map(dest => dest.LastName, src => src.LastName)
                 .Map(dest => dest.SuperAdmin, src => src.SuperAdmin);
         }
     }

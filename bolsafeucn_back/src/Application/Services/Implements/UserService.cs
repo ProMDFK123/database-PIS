@@ -49,10 +49,10 @@ namespace bolsafeucn_back.src.Application.Services.Implements
                 throw new Exception("El RUT ya está en uso.");
             }
             var user = registerStudentDTO.Adapt<GeneralUser>();
-            user.PhoneNumber = NormalizePhoneNumber(registerStudentDTO.Telefono);
+            user.PhoneNumber = NormalizePhoneNumber(registerStudentDTO.PhoneNumber);
             var result = await _userRepository.CreateUserAsync(
                 user,
-                registerStudentDTO.Contraseña,
+                registerStudentDTO.Password,
                 "Applicant"
             );
             if (result == false)
@@ -60,7 +60,7 @@ namespace bolsafeucn_back.src.Application.Services.Implements
                 throw new Exception("Error al crear el usuario.");
             }
             var student = registerStudentDTO.Adapt<Student>();
-            student.UsuarioGenericoId = user.Id;
+            student.GeneralUserId = user.Id;
             result = await _userRepository.CreateStudentAsync(student);
             if (!result)
             {
@@ -71,9 +71,9 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             VerificationCode verificationCode = new VerificationCode
             {
                 Code = code,
-                TipoCodigo = CodeType.EmailConfirmation,
-                UsuarioGenericoId = user.Id,
-                Expiracion = DateTime.UtcNow.AddHours(1),
+                CodeType = CodeType.EmailConfirmation,
+                GeneralUserId = user.Id,
+                Expiration = DateTime.UtcNow.AddHours(1),
             };
             var newCode = await _verificationCodeRepository.CreateCodeAsync(verificationCode);
             if (newCode == null)
@@ -106,10 +106,10 @@ namespace bolsafeucn_back.src.Application.Services.Implements
                 throw new Exception("El RUT ya está en uso.");
             }
             var user = registerIndividualDTO.Adapt<GeneralUser>();
-            user.PhoneNumber = NormalizePhoneNumber(registerIndividualDTO.Telefono);
+            user.PhoneNumber = NormalizePhoneNumber(registerIndividualDTO.PhoneNumber);
             var result = await _userRepository.CreateUserAsync(
                 user,
-                registerIndividualDTO.Contraseña,
+                registerIndividualDTO.Password,
                 "Offerent"
             );
             if (!result)
@@ -117,7 +117,7 @@ namespace bolsafeucn_back.src.Application.Services.Implements
                 throw new Exception("Error al crear el usuario.");
             }
             var individual = registerIndividualDTO.Adapt<Individual>();
-            individual.UsuarioGenericoId = user.Id;
+            individual.GeneralUserId = user.Id;
             result = await _userRepository.CreateIndividualAsync(individual);
             if (!result)
             {
@@ -128,9 +128,9 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             VerificationCode verificationCode = new VerificationCode
             {
                 Code = code,
-                TipoCodigo = CodeType.EmailConfirmation,
-                UsuarioGenericoId = user.Id,
-                Expiracion = DateTime.UtcNow.AddHours(1),
+                CodeType = CodeType.EmailConfirmation,
+                GeneralUserId = user.Id,
+                Expiration = DateTime.UtcNow.AddHours(1),
             };
             var newCode = await _verificationCodeRepository.CreateCodeAsync(verificationCode);
             if (newCode == null)
@@ -157,10 +157,10 @@ namespace bolsafeucn_back.src.Application.Services.Implements
                 throw new Exception("El RUT ya está en uso.");
             }
             var user = registerCompanyDTO.Adapt<GeneralUser>();
-            user.PhoneNumber = NormalizePhoneNumber(registerCompanyDTO.Telefono);
+            user.PhoneNumber = NormalizePhoneNumber(registerCompanyDTO.PhoneNumber);
             var result = await _userRepository.CreateUserAsync(
                 user,
-                registerCompanyDTO.Contraseña,
+                registerCompanyDTO.Password,
                 "Offerent"
             );
             if (!result)
@@ -168,7 +168,7 @@ namespace bolsafeucn_back.src.Application.Services.Implements
                 throw new Exception("Error al crear el usuario.");
             }
             var company = registerCompanyDTO.Adapt<Company>();
-            company.UsuarioGenericoId = user.Id;
+            company.GeneralUserId = user.Id;
             result = await _userRepository.CreateCompanyAsync(company);
             if (!result)
             {
@@ -179,9 +179,9 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             VerificationCode verificationCode = new VerificationCode
             {
                 Code = code,
-                TipoCodigo = CodeType.EmailConfirmation,
-                UsuarioGenericoId = user.Id,
-                Expiracion = DateTime.UtcNow.AddHours(1),
+                CodeType = CodeType.EmailConfirmation,
+                GeneralUserId = user.Id,
+                Expiration = DateTime.UtcNow.AddHours(1),
             };
             var newCode = await _verificationCodeRepository.CreateCodeAsync(verificationCode);
             if (newCode == null)
@@ -208,7 +208,7 @@ namespace bolsafeucn_back.src.Application.Services.Implements
                 throw new Exception("El RUT ya está en uso.");
             }
             var user = registerAdminDTO.Adapt<GeneralUser>();
-            user.PhoneNumber = NormalizePhoneNumber(registerAdminDTO.Telefono);
+            user.PhoneNumber = NormalizePhoneNumber(registerAdminDTO.PhoneNumber);
             string role = "Admin";
             if (registerAdminDTO.SuperAdmin)
             {
@@ -216,7 +216,7 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             }
             var result = await _userRepository.CreateUserAsync(
                 user,
-                registerAdminDTO.Contraseña,
+                registerAdminDTO.Password,
                 role
             );
             if (!result)
@@ -224,7 +224,7 @@ namespace bolsafeucn_back.src.Application.Services.Implements
                 throw new Exception("Error al crear el usuario.");
             }
             var admin = registerAdminDTO.Adapt<Admin>();
-            admin.UsuarioGenericoId = user.Id;
+            admin.GeneralUserId = user.Id;
             result = await _userRepository.CreateAdminAsync(admin, registerAdminDTO.SuperAdmin);
             if (!result)
             {
@@ -235,9 +235,9 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             VerificationCode verificationCode = new VerificationCode
             {
                 Code = code,
-                TipoCodigo = CodeType.EmailConfirmation,
-                UsuarioGenericoId = user.Id,
-                Expiracion = DateTime.UtcNow.AddHours(1),
+                CodeType = CodeType.EmailConfirmation,
+                GeneralUserId = user.Id,
+                Expiration = DateTime.UtcNow.AddHours(1),
             };
             var newCode = await _verificationCodeRepository.CreateCodeAsync(verificationCode);
             if (newCode == null)
@@ -269,7 +269,7 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             );
             if (
                 verificationCode.Code != verifyEmailDTO.VerificationCode
-                || DateTime.UtcNow >= verificationCode.Expiracion
+                || DateTime.UtcNow >= verificationCode.Expiration
             )
             {
                 int attempsCountUpdated = await _verificationCodeRepository.IncreaseAttemptsAsync(
@@ -293,7 +293,7 @@ namespace bolsafeucn_back.src.Application.Services.Implements
                         }
                     }
                 }
-                if (DateTime.UtcNow >= verificationCode.Expiracion)
+                if (DateTime.UtcNow >= verificationCode.Expiration)
                 {
                     throw new Exception("El código de verificación ha expirado.");
                 }
