@@ -5,7 +5,8 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Interfaces
     public interface IVerificationCodeRepository
     {
         Task<VerificationCode> CreateCodeAsync(VerificationCode code);
-        Task<VerificationCode> GetByLastUserIdAsync(int userId, CodeType tipo);
+        Task<VerificationCode> GetByLatestUserIdAsync(int userId, CodeType tipo);
+        Task<int> IncreaseAttemptsAsync(int userId, CodeType codeType);
         Task<bool> DeleteByUserIdAsync(int userId, CodeType tipo);
     }
 }

@@ -41,6 +41,19 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             await _resend.EmailSendAsync(message);
         }
 
+        public async Task SendWelcomeEmailAsync(string email)
+        {
+            var htmlBody = await LoadTemplateAsync("WelcomeEmail", null);
+            var message = new EmailMessage
+            {
+                From = _configuration.GetValue<string>("EmailConfiguration:From")!,
+                To = email,
+                Subject = _configuration.GetValue<string>("EmailConfiguration:WelcomeSubject")!,
+                HtmlBody = htmlBody,
+            };
+            await _resend.EmailSendAsync(message);
+        }
+
         /// <summary>
         /// Carga una plantilla de correo electrónico y reemplaza el marcador de posición {{CODE}} con el código proporcionado si es necesario.
         /// </summary>

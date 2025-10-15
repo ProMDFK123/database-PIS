@@ -18,6 +18,7 @@ namespace bolsafeucn_back.src.Domain.Models
         public required string Code { get; set; }
         public required CodeType TipoCodigo { get; set; }
         public required int UsuarioGenericoId { get; set; }
+        public int Intentos { get; set; } = 0;
         public required DateTime Expiracion { get; set; }
         public DateTime CreadoEn { get; set; } = DateTime.UtcNow;
     }
