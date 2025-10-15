@@ -1,13 +1,47 @@
-using bolsafeucn_back.src.Application.DTOs;
+using bolsafeucn_back.src.Application.DTOs.AuthDTOs;
 using bolsafeucn_back.src.Application.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace bolsafeucn_back.src.API.Controllers
 {
-    public class UsuarioController(IUsuarioService usuarioService) : BaseController
+    public class AuthController(IUserService userService) : BaseController
     {
-        private readonly IUsuarioService _service = usuarioService;
+        private readonly IUserService _service = userService;
 
+        [HttpPost("register/student")]
+        public async Task<IActionResult> Register([FromBody] RegisterStudentDTO registerStudentDTO)
+        {
+            var message = await _service.RegisterStudentAsync(registerStudentDTO, HttpContext);
+            return Ok(new { message });
+        }
+
+        [HttpPost("register/individual")]
+        public async Task<IActionResult> Register(
+            [FromBody] RegisterIndividualDTO registerIndividualDTO
+        )
+        {
+            var message = await _service.RegisterIndividualAsync(
+                registerIndividualDTO,
+                HttpContext
+            );
+            return Ok(new { message });
+        }
+
+        [HttpPost("register/company")]
+        public async Task<IActionResult> Register([FromBody] RegisterCompanyDTO registerCompanyDTO)
+        {
+            var message = await _service.RegisterCompanyAsync(registerCompanyDTO, HttpContext);
+            return Ok(new { message });
+        }
+
+        [HttpPost("register/admin")]
+        public async Task<IActionResult> Register([FromBody] RegisterAdminDTO registerAdminDTO)
+        {
+            var message = await _service.RegisterAdminAsync(registerAdminDTO, HttpContext);
+            return Ok(new { message });
+        }
+
+        /*
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -39,5 +73,6 @@ namespace bolsafeucn_back.src.API.Controllers
                 return NotFound();
             return NoContent();
         }
+        */
     }
 }
