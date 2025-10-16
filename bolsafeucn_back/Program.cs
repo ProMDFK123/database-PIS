@@ -99,7 +99,10 @@ try
 
     #region Configuracion de PostgreSQL
     builder.Services.AddDbContext<AppDbContext>(options =>
-        options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
+        options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"), npgsqlOptions =>
+        {
+            npgsqlOptions.CommandTimeout(30); // Agrega un timeout de 30 segundos
+        })
     );
     #endregion
 
@@ -120,6 +123,8 @@ try
 
     var app = builder.Build();
 
+    // Llama al seeder en un hilo separado para evitar deadlocks
+    // y espera a que termine antes de continuar.
     await SeedAndMapDatabase(app);
 
     if (app.Environment.IsDevelopment())

@@ -16,36 +16,58 @@ namespace bolsafeucn_back.src.Infrastructure.Data
         public DbSet<Admin> Admins { get; set; }
         public DbSet<VerificationCode> VerificationCodes { get; set; }
 
-        //public DbSet<Offer> Ofertas { get; set; }
-        //public DbSet<JobApplication> Postulaciones { get; set; }
-        //public DbSet<Review> Evaluaciones { get; set; }
+        public DbSet<Offer> Offers { get; set; }
+        public DbSet<JobApplication> JobApplications { get; set; }
+
+        // public DbSet<Review> Reviews { get; set; } // Desactivado temporalmente
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
+
+            // Relaciones uno a uno (GeneralUser -> TipoDeUsuario)
             builder
                 .Entity<Student>()
                 .HasOne(s => s.GeneralUser)
-                .WithOne()
+                .WithOne(gu => gu.Student)
                 .HasForeignKey<Student>(s => s.GeneralUserId)
                 .OnDelete(DeleteBehavior.Cascade);
+
             builder
                 .Entity<Company>()
                 .HasOne(c => c.GeneralUser)
-                .WithOne()
+                .WithOne(gu => gu.Company)
                 .HasForeignKey<Company>(c => c.GeneralUserId)
                 .OnDelete(DeleteBehavior.Cascade);
+
             builder
                 .Entity<Admin>()
                 .HasOne(a => a.GeneralUser)
-                .WithOne()
+                .WithOne(gu => gu.Admin)
                 .HasForeignKey<Admin>(a => a.GeneralUserId)
                 .OnDelete(DeleteBehavior.Cascade);
+
             builder
                 .Entity<Individual>()
                 .HasOne(i => i.GeneralUser)
-                .WithOne()
+                .WithOne(gu => gu.Individual)
                 .HasForeignKey<Individual>(i => i.GeneralUserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Relaciones de Offer
+            builder
+                .Entity<Offer>()
+                .HasOne(o => o.Oferente)
+                .WithMany()
+                .HasForeignKey(o => o.OferenteId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Relaciones de JobApplication
+            builder
+                .Entity<JobApplication>()
+                .HasOne(ja => ja.Estudiante)
+                .WithMany()
+                .HasForeignKey(ja => ja.EstudianteId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }
