@@ -23,6 +23,7 @@ namespace bolsafeucn_back.src.Application.Infrastructure.Data
                 await context.Database.EnsureCreatedAsync();
                 await context.Database.MigrateAsync();
 
+                //Crea los roles que usa el sistema
                 if (!context.Roles.Any())
                 {
                     var roles = new List<Role>
