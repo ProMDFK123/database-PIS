@@ -64,6 +64,11 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Implements
             return false;
         }
 
+        /// <summary>
+        /// Crea un nuevo estudiante en el sistema.
+        /// </summary>
+        /// <param name="student">Estudiante a crear</param>
+        /// <returns>True si se creó el estudiante, de lo contrario false.</returns>
         public async Task<bool> CreateStudentAsync(Student student)
         {
             var result = await _context.Students.AddAsync(student);
@@ -78,6 +83,11 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Implements
             return result != null;
         }
 
+        /// <summary>
+        /// Crea una nueva empresa en el sistema.
+        /// </summary>
+        /// <param name="company">Empresa a crear</param>
+        /// <returns>True si se creó la empresa, de lo contrario false.</returns>
         public async Task<bool> CreateCompanyAsync(Company company)
         {
             var result = await _context.Companies.AddAsync(company);
@@ -85,6 +95,12 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Implements
             return result != null;
         }
 
+        /// <summary>
+        /// Crea un nuevo administrador en el sistema.
+        /// </summary>
+        /// <param name="admin">Administrador a crear</param>
+        /// <param name="superAdmin">Indica si el administrador es superadministrador</param>
+        /// <returns>True si se creó el administrador, de lo contrario false.</returns>
         public async Task<bool> CreateAdminAsync(Admin admin, bool superAdmin)
         {
             var result = await _context.Admins.AddAsync(admin);
@@ -92,6 +108,11 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Implements
             return result != null;
         }
 
+        /// <summary>
+        /// Confirma el correo electrónico de un usuario.
+        /// </summary>
+        /// <param name="email">Correo electrónico a confirmar</param>
+        /// <returns>True si se confirmó el correo electrónico, de lo contrario false.</returns>
         public async Task<bool> ConfirmEmailAsync(string email)
         {
             var result = await _context
@@ -100,15 +121,37 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Implements
             return result > 0;
         }
 
+        /// <summary>
+        /// Verifica si la contraseña proporcionada coincide con la del usuario.
+        /// </summary>
+        /// <param name="user">Usuario a verificar</param>
+        /// <param name="password">Contraseña a verificar</param>
+        /// <returns>True si la contraseña es correcta, de lo contrario false.</returns>
         public async Task<bool> CheckPasswordAsync(GeneralUser user, string password)
         {
             return await _userManager.CheckPasswordAsync(user, password);
         }
 
+        /// <summary>
+        /// Obtiene el rol del usuario.
+        /// </summary>
+        /// <param name="user">Usuario del cual obtener el rol</param>
+        /// <returns>Rol del usuario</returns>
         public async Task<string> GetRoleAsync(GeneralUser user)
         {
             var roles = await _userManager.GetRolesAsync(user);
             return roles.FirstOrDefault()!;
+        }
+
+        /// <summary>
+        /// Obtiene un usuario general por su ID.
+        /// </summary>
+        /// <param name="id">ID del usuario a obtener</param>
+        /// <returns>Usuario general</returns>
+        public async Task<GeneralUser> GetGeneralUserByIdAsync(int id)
+        {
+            var user = await _userManager.FindByIdAsync(id.ToString());
+            return user!;
         }
 
         public async Task<IEnumerable<GeneralUser>> GetAllAsync()
