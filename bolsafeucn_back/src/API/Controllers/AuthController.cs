@@ -1,16 +1,25 @@
 using bolsafeucn_back.src.Application.DTOs.AuthDTOs;
 using bolsafeucn_back.src.Application.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace bolsafeucn_back.src.API.Controllers
 {
-    public class AuthController(IUserService userService) : BaseController
+    public class AuthController : BaseController
     {
-        private readonly IUserService _service = userService;
+        private readonly IUserService _service;
+        private readonly ILogger<AuthController> _logger;
+
+        public AuthController(IUserService userService, ILogger<AuthController> logger)
+        {
+            _service = userService;
+            _logger = logger;
+        }
 
         [HttpPost("register/student")]
         public async Task<IActionResult> Register([FromBody] RegisterStudentDTO registerStudentDTO)
         {
+            _logger.LogInformation("Attempting to register new student with email {Email}", registerStudentDTO.Email);
             var message = await _service.RegisterStudentAsync(registerStudentDTO, HttpContext);
             return Ok(new { message });
         }
