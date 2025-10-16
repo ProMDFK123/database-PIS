@@ -19,7 +19,10 @@ namespace bolsafeucn_back.src.API.Controllers
         [HttpPost("register/student")]
         public async Task<IActionResult> Register([FromBody] RegisterStudentDTO registerStudentDTO)
         {
-            _logger.LogInformation("Attempting to register new student with email {Email}", registerStudentDTO.Email);
+            _logger.LogInformation(
+                "Attempting to register new student with email {Email}",
+                registerStudentDTO.Email
+            );
             var message = await _service.RegisterStudentAsync(registerStudentDTO, HttpContext);
             return Ok(new { message });
         }
@@ -29,6 +32,10 @@ namespace bolsafeucn_back.src.API.Controllers
             [FromBody] RegisterIndividualDTO registerIndividualDTO
         )
         {
+            _logger.LogInformation(
+                "Endpoint: POST /api/auth/register/individual - Intentando registrar particular con email: {Email}",
+                registerIndividualDTO.Email
+            );
             var message = await _service.RegisterIndividualAsync(
                 registerIndividualDTO,
                 HttpContext
@@ -39,6 +46,10 @@ namespace bolsafeucn_back.src.API.Controllers
         [HttpPost("register/company")]
         public async Task<IActionResult> Register([FromBody] RegisterCompanyDTO registerCompanyDTO)
         {
+            _logger.LogInformation(
+                "Endpoint: POST /api/auth/register/company - Intentando registrar empresa con email: {Email}",
+                registerCompanyDTO.Email
+            );
             var message = await _service.RegisterCompanyAsync(registerCompanyDTO, HttpContext);
             return Ok(new { message });
         }
@@ -46,6 +57,10 @@ namespace bolsafeucn_back.src.API.Controllers
         [HttpPost("register/admin")]
         public async Task<IActionResult> Register([FromBody] RegisterAdminDTO registerAdminDTO)
         {
+            _logger.LogInformation(
+                "Endpoint: POST /api/auth/register/admin - Intentando registrar admin con email: {Email}",
+                registerAdminDTO.Email
+            );
             var message = await _service.RegisterAdminAsync(registerAdminDTO, HttpContext);
             return Ok(new { message });
         }
@@ -53,6 +68,10 @@ namespace bolsafeucn_back.src.API.Controllers
         [HttpPost("verify-email")]
         public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailDTO verifyEmailDTO)
         {
+            _logger.LogInformation(
+                "Endpoint: POST /api/auth/verify-email - Intentando verificar email: {Email}",
+                verifyEmailDTO.Email
+            );
             var message = await _service.VerifyEmailAsync(verifyEmailDTO, HttpContext);
             return Ok(new { message });
         }
@@ -60,6 +79,10 @@ namespace bolsafeucn_back.src.API.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDTO loginDTO)
         {
+            _logger.LogInformation(
+                "Endpoint: POST /api/auth/login - Intento de login para: {Email}",
+                loginDTO.Email
+            );
             var token = await _service.LoginAsync(loginDTO, HttpContext);
             return Ok(new { token });
         }

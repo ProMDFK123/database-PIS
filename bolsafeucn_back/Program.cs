@@ -16,7 +16,8 @@ using Swashbuckle.AspNetCore.Swagger;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using Swashbuckle.AspNetCore.SwaggerUI;
 
-// Configure Serilog logger reading from appsettings.json
+// Configura Serilog para leer desde appsettings.json.
+// Esto es útil para capturar errores incluso antes de que la aplicación se inicie por completo.
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(
         new ConfigurationBuilder()
@@ -31,7 +32,7 @@ try
 
     var builder = WebApplication.CreateBuilder(args);
 
-    // Add Serilog to the host
+    // Añade Serilog al host de la aplicación para que se integre con el sistema de logging de .NET.
     builder.Host.UseSerilog(
         (context, configuration) => configuration.ReadFrom.Configuration(context.Configuration)
     );
@@ -99,10 +100,7 @@ try
 
     #region Configuracion de PostgreSQL
     builder.Services.AddDbContext<AppDbContext>(options =>
-        options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"), npgsqlOptions =>
-        {
-            npgsqlOptions.CommandTimeout(30); // Agrega un timeout de 30 segundos
-        })
+        options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
     );
     #endregion
 
@@ -123,19 +121,24 @@ try
 
     var app = builder.Build();
 
-    // Llama al seeder en un hilo separado para evitar deadlocks
-    // y espera a que termine antes de continuar.
+    // Middleware de manejo de errores
+    app.UseMiddleware<bolsafeucn_back.src.API.Middlewares.ErrorHandlingMiddleware.ErrorHandlingMiddleware>();
+
+    // Esta es la forma correcta de llamar al seeder para evitar el deadlock.
     await SeedAndMapDatabase(app);
 
     if (app.Environment.IsDevelopment())
     {
         app.UseSwagger();
         app.UseSwaggerUI();
+        Log.Information("Swagger UI habilitado en modo desarrollo");
     }
 
     app.UseHttpsRedirection();
     app.UseAuthorization();
     app.MapControllers();
+
+    Log.Information("Aplicación iniciada correctamente");
     app.Run();
 }
 catch (Exception ex)
@@ -147,12 +150,15 @@ finally
     Log.CloseAndFlush();
 }
 
+// Método auxiliar para inicializar la base de datos y los mapeos
 async Task SeedAndMapDatabase(IHost app)
 {
     using var scope = app.Services.CreateScope();
     var serviceProvider = scope.ServiceProvider;
     var configuration = app.Services.GetRequiredService<IConfiguration>();
 
+    Log.Information("Iniciando seed de base de datos y configuración de mappers");
     await DataSeeder.Initialize(configuration, serviceProvider);
     MapperExtensions.ConfigureMapster(serviceProvider);
+    Log.Information("Seed de base de datos y configuración de mappers completados");
 }
