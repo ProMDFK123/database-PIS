@@ -10,8 +10,8 @@ namespace bolsafeucn_back.src.Domain.Models
     public abstract class Publication
     {
         public int Id { get; set; }
-        public required GeneralUser Oferente { get; set; }
-        public required string UserId { get; set; }
+        public required GeneralUser User { get; set; }
+        public required int UserId { get; set; }
         public required string Title { get; set; }
         public required string Description { get; set; }
         public DateTime PublicationDate { get; set; } = DateTime.Now;

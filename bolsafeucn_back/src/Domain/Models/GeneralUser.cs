@@ -23,6 +23,7 @@ namespace bolsafeucn_back.src.Domain.Models
         public required bool Banned { get; set; } = false;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+        public ICollection<Publication> Publications { get; set; } = new List<Publication>();
 
         //Coneccion con los tipos de usuario
         public Student? Student { get; set; }
