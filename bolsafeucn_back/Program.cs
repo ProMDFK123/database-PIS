@@ -1,4 +1,3 @@
-
 using bolsafe_ucn.src.Application.Services.Interfaces;
 using bolsafeucn_back.src.Application.Infrastructure.Data;
 using bolsafeucn_back.src.Application.Mappers;
@@ -18,9 +17,11 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 using Swashbuckle.AspNetCore.SwaggerUI;
 
 // Configure Serilog logger reading from appsettings.json
-Log.Logger = new LoggerConfiguration().ReadFrom
-    .Configuration(
-        new ConfigurationBuilder().AddJsonFile("appsettings.json", optional: false, reloadOnChange: true).Build()
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(
+        new ConfigurationBuilder()
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+            .Build()
     )
     .CreateLogger();
 
@@ -32,8 +33,7 @@ try
 
     // Add Serilog to the host
     builder.Host.UseSerilog(
-        (context, configuration) =>
-            configuration.ReadFrom.Configuration(context.Configuration)
+        (context, configuration) => configuration.ReadFrom.Configuration(context.Configuration)
     );
 
     builder.Services.AddControllers();
@@ -108,23 +108,19 @@ try
     builder.Services.AddScoped<IndividualMapper>();
     builder.Services.AddScoped<CompanyMapper>();
     builder.Services.AddScoped<AdminMapper>();
+    builder.Services.AddScoped<OfferMapper>();
     builder.Services.AddScoped<IUserRepository, UserRepository>();
+    builder.Services.AddScoped<IOfferRepository, OfferRepository>();
     builder.Services.AddScoped<IUserService, UserService>();
     builder.Services.AddScoped<IEmailService, EmailService>();
     builder.Services.AddScoped<ITokenService, TokenService>();
+    builder.Services.AddScoped<IOfferService, OfferService>();
     builder.Services.AddScoped<IVerificationCodeRepository, VerificationCodeRepository>();
     #endregion
 
     var app = builder.Build();
 
-    #region Inicializacion de la base de datos y mapeos
-    using (var scope = app.Services.CreateScope())
-    {
-        await DataSeeder.Initialize(app.Services);
-
-        MapperExtensions.ConfigureMapster(scope.ServiceProvider);
-    }
-    #endregion
+    await SeedAndMapDatabase(app);
 
     if (app.Environment.IsDevelopment())
     {
@@ -144,4 +140,14 @@ catch (Exception ex)
 finally
 {
     Log.CloseAndFlush();
+}
+
+async Task SeedAndMapDatabase(IHost app)
+{
+    using var scope = app.Services.CreateScope();
+    var serviceProvider = scope.ServiceProvider;
+    var configuration = app.Services.GetRequiredService<IConfiguration>();
+
+    await DataSeeder.Initialize(configuration, serviceProvider);
+    MapperExtensions.ConfigureMapster(serviceProvider);
 }
