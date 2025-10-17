@@ -208,6 +208,12 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             return "Usuario registrado exitosamente. Por favor, verifica tu correo electrónico.";
         }
 
+        /// <summary>
+        /// Registra una nueva empresa en el sistema.
+        /// </summary>
+        /// <param name="registerCompanyDTO">Dto de registro de la empresa</param>
+        /// <param name="httpContext">Contexto HTTP</param>
+        /// <returns>Mensaje de éxito o error</returns>
         public async Task<string> RegisterCompanyAsync(
             RegisterCompanyDTO registerCompanyDTO,
             HttpContext httpContext
@@ -291,6 +297,12 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             return "Usuario registrado exitosamente. Por favor, verifica tu correo electrónico.";
         }
 
+        /// <summary>
+        /// Registra un nuevo administrador en el sistema.
+        /// </summary>
+        /// <param name="registerAdminDTO">Dto de registro del administrador</param>
+        /// <param name="httpContext">Contexto HTTP</param>
+        /// <returns>Mensaje de éxito o error</returns>
         public async Task<string> RegisterAdminAsync(
             RegisterAdminDTO registerAdminDTO,
             HttpContext httpContext
@@ -381,6 +393,12 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             return "Usuario registrado exitosamente. Por favor, verifica tu correo electrónico.";
         }
 
+        /// <summary>
+        /// Verifica el correo electrónico de un usuario.
+        /// </summary>
+        /// <param name="verifyEmailDTO">Dto de verificación del correo electrónico</param>
+        /// <param name="httpContext">Contexto HTTP</param>
+        /// <returns>Mensaje de éxito o error</returns>
         public async Task<string> VerifyEmailAsync(
             VerifyEmailDTO verifyEmailDTO,
             HttpContext httpContext
@@ -486,6 +504,12 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             throw new Exception("Error al verificar el correo electrónico.");
         }
 
+        /// <summary>
+        /// Inicia sesión en el sistema.
+        /// </summary>
+        /// <param name="loginDTO">Dto de inicio de sesión</param>
+        /// <param name="httpContext">Contexto HTTP</param>
+        /// <returns>Token de acceso</returns>
         public async Task<string> LoginAsync(LoginDTO loginDTO, HttpContext httpContext)
         {
             _logger.LogInformation("Intento de login para email: {Email}", loginDTO.Email);

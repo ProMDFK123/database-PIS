@@ -19,6 +19,13 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             _jwtSecret = _configuration.GetValue<string>("Jwt:Key")!;
         }
 
+        /// <summary>
+        /// Crea un token JWT para el usuario dado.
+        /// </summary>
+        /// <param name="user">Usuario</param>
+        /// <param name="roleName">Nombre del rol</param>
+        /// <param name="rememberMe">Indica si se debe recordar al usuario</param>
+        /// <returns>Token JWT</returns>
         public string CreateToken(GeneralUser user, string roleName, bool rememberMe)
         {
             try

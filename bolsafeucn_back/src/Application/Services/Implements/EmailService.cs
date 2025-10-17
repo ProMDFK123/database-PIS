@@ -60,6 +60,11 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             }
         }
 
+        /// <summary>
+        /// Envía un correo de bienvenida al email proporcionado.
+        /// </summary>
+        /// <param name="email">El correo electrónico del usuario.</param>
+        /// <returns></returns>
         public async Task SendWelcomeEmailAsync(string email)
         {
             try
