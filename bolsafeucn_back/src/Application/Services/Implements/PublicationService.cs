@@ -6,6 +6,9 @@ using bolsafeucn_back.src.Infrastructure.Repositories.Interfaces;
 
 namespace bolsafeucn_back.src.Application.Services.Implements
 {
+    /// <summary>
+    /// Servicio para la gestión de publicaciones (Ofertas y Compra/Venta)
+    /// </summary>
     public class PublicationService : IPublicationService
     {
         private readonly IOfferRepository _offerRepository;
@@ -20,6 +23,9 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             _buySellRepository = buySellRepository;
         }
 
+        /// <summary>
+        /// Crea una nueva oferta laboral o de voluntariado
+        /// </summary>
         public async Task<GenericResponse<string>> CreateOfferAsync(
             CreateOfferDTO offerDTO,
             GeneralUser currentUser
@@ -32,26 +38,29 @@ namespace bolsafeucn_back.src.Application.Services.Implements
                     Title = offerDTO.Title,
                     Description = offerDTO.Description,
                     PublicationDate = offerDTO.PublicationDate,
-                    FechaFin = offerDTO.ExpirationDate,
-                    FechaLimite = offerDTO.ExpirationDate,
-                    Remuneracion = (int)offerDTO.Remuneration,
-                    Tipo = Tipos.Trabajo, // Por defecto, se puede ajustar según la categoría
+                    EndDate = offerDTO.ExpirationDate,
+                    DeadlineDate = offerDTO.ExpirationDate,
+                    Remuneration = (int)offerDTO.Remuneration,
+                    OfferType = OfferTypes.Trabajo, // Por defecto, se puede ajustar según la categoría
                     UserId = currentUser.Id,
                     User = currentUser,
                     Type = Types.Offer,
                     IsActive = false,
-                    Activa = false,
+                    Active = false,
                 };
 
                 await _offerRepository.CreateOfferAsync(offer);
             }
             catch (Exception)
             {
-                // Log error
+                // TODO: Registrar el error en los logs
             }
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Crea una nueva publicación de compra/venta
+        /// </summary>
         public async Task<GenericResponse<string>> CreateBuySellAsync(
             CreateBuySellDTO buySellDTO,
             GeneralUser currentUser
@@ -74,7 +83,7 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             }
             catch (Exception)
             {
-                // Log error
+                // TODO: Registrar el error en los logs
             }
             throw new NotImplementedException();
         }

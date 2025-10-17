@@ -173,7 +173,7 @@ namespace bolsafeucn_back.src.Application.Infrastructure.Data
                 var selectedOfferent = faker.PickRandom(offerents);
                 var offer = new Offer
                 {
-                    // Propiedades de Publication (clase base)
+                    // Propiedades heredadas de Publication (clase base)
                     UserId = selectedOfferent.Id,
                     User = selectedOfferent,
                     Title = faker.Lorem.Sentence(3),
@@ -183,11 +183,11 @@ namespace bolsafeucn_back.src.Application.Infrastructure.Data
                     IsActive = true,
 
                     // Propiedades específicas de Offer
-                    FechaFin = DateTime.UtcNow.AddDays(faker.Random.Int(10, 30)),
-                    FechaLimite = DateTime.UtcNow.AddDays(faker.Random.Int(5, 9)),
-                    Remuneracion = faker.Random.Int(500, 2000),
-                    Tipo = faker.PickRandom<Tipos>(),
-                    Activa = true,
+                    EndDate = DateTime.UtcNow.AddDays(faker.Random.Int(10, 30)),
+                    DeadlineDate = DateTime.UtcNow.AddDays(faker.Random.Int(5, 9)),
+                    Remuneration = faker.Random.Int(500, 2000),
+                    OfferType = faker.PickRandom<OfferTypes>(),
+                    Active = true,
                 };
                 context.Offers.Add(offer);
             }

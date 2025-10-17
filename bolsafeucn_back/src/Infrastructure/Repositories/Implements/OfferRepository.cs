@@ -5,6 +5,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace bolsafeucn_back.src.Infrastructure.Repositories.Implements;
 
+/// <summary>
+/// Implementación del repositorio para operaciones de Offer en la base de datos
+/// </summary>
 public class OfferRepository : IOfferRepository
 {
     private readonly AppDbContext _context;
@@ -16,6 +19,9 @@ public class OfferRepository : IOfferRepository
         _logger = logger;
     }
 
+    /// <summary>
+    /// Obtiene todas las ofertas activas que aún no han expirado
+    /// </summary>
     public async Task<IEnumerable<Offer>> GetAllActiveAsync()
     {
         _logger.LogInformation("Consultando ofertas activas en la base de datos");
@@ -24,7 +30,7 @@ public class OfferRepository : IOfferRepository
             .ThenInclude(gu => gu.Company)
             .Include(o => o.User)
             .ThenInclude(gu => gu.Individual)
-            .Where(o => o.IsActive && o.FechaFin > DateTime.UtcNow)
+            .Where(o => o.IsActive && o.EndDate > DateTime.UtcNow)
             .AsNoTracking()
             .ToListAsync();
         _logger.LogInformation(
@@ -34,6 +40,9 @@ public class OfferRepository : IOfferRepository
         return offers;
     }
 
+    /// <summary>
+    /// Obtiene una oferta por su ID con sus relaciones cargadas
+    /// </summary>
     public async Task<Offer?> GetByIdAsync(int offerId)
     {
         _logger.LogInformation("Consultando oferta ID: {OfferId} en la base de datos", offerId);
@@ -55,6 +64,9 @@ public class OfferRepository : IOfferRepository
         return offer;
     }
 
+    /// <summary>
+    /// Crea una nueva oferta en la base de datos
+    /// </summary>
     public async Task<Offer> CreateOfferAsync(Offer offer)
     {
         try
@@ -81,6 +93,9 @@ public class OfferRepository : IOfferRepository
         }
     }
 
+    /// <summary>
+    /// Obtiene una oferta por ID incluyendo sus imágenes
+    /// </summary>
     public async Task<Offer?> GetOfferByIdAsync(int id)
     {
         _logger.LogInformation("Consultando oferta por ID: {OfferId}", id);
@@ -103,6 +118,9 @@ public class OfferRepository : IOfferRepository
         return offer;
     }
 
+    /// <summary>
+    /// Obtiene todas las ofertas del sistema
+    /// </summary>
     public async Task<IEnumerable<Offer>> GetAllOffersAsync()
     {
         _logger.LogInformation("Consultando todas las ofertas en la base de datos");
@@ -117,6 +135,9 @@ public class OfferRepository : IOfferRepository
         return offers;
     }
 
+    /// <summary>
+    /// Actualiza una oferta existente
+    /// </summary>
     public async Task<bool> UpdateOfferAsync(Offer offer)
     {
         try
@@ -141,6 +162,9 @@ public class OfferRepository : IOfferRepository
         }
     }
 
+    /// <summary>
+    /// Elimina una oferta de la base de datos
+    /// </summary>
     public async Task<bool> DeleteOfferAsync(int id)
     {
         try
