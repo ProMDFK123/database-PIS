@@ -2,9 +2,6 @@ using Microsoft.AspNetCore.Identity;
 
 namespace bolsafeucn_back.src.Domain.Models
 {
-    /// <summary>
-    /// Tipos de usuario en el sistema.
-    /// </summary>
     public enum UserType
     {
         Estudiante,
@@ -13,9 +10,6 @@ namespace bolsafeucn_back.src.Domain.Models
         Administrador,
     }
 
-    /// <summary>
-    /// Clase que representa un usuario genérico en el sistema.
-    /// </summary>
     public class GeneralUser : IdentityUser<int>
     {
         public required UserType UserType { get; set; }

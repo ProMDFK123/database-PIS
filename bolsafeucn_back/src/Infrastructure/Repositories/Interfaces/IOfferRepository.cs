@@ -1,14 +1,17 @@
 using bolsafeucn_back.src.Domain.Models;
 
-namespace bolsafeucn_back.src.Infrastructure.Repositories.Interfaces
+namespace bolsafeucn_back.src.Infrastructure.Repositories.Interfaces;
+
+public interface IOfferRepository
 {
-    public interface IOfferRepository
-    {
-        // Define methods for Offer repository here
-        Task<Offer> CreateOfferAsync(Offer offer);
-        Task<Offer?> GetOfferByIdAsync(int id);
-        Task<IEnumerable<Offer>> GetAllOffersAsync();
-        Task<bool> UpdateOfferAsync(Offer offer);
-        Task<bool> DeleteOfferAsync(int id);
-    }
+    // Métodos de consulta
+    Task<Offer?> GetByIdAsync(int offerId);
+    Task<Offer?> GetOfferByIdAsync(int id);
+    Task<IEnumerable<Offer>> GetAllActiveAsync();
+    Task<IEnumerable<Offer>> GetAllOffersAsync();
+
+    // Métodos de escritura
+    Task<Offer> CreateOfferAsync(Offer offer);
+    Task<bool> UpdateOfferAsync(Offer offer);
+    Task<bool> DeleteOfferAsync(int id);
 }

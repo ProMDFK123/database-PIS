@@ -11,109 +11,154 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Resend;
+using Serilog;
 using Swashbuckle.AspNetCore.Swagger;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using Swashbuckle.AspNetCore.SwaggerUI;
 
-var builder = WebApplication.CreateBuilder(args);
+// Configura Serilog para leer desde appsettings.json.
+// Esto es útil para capturar errores incluso antes de que la aplicación se inicie por completo.
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(
+        new ConfigurationBuilder()
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+            .Build()
+    )
+    .CreateLogger();
 
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+try
+{
+    Log.Information("Starting web application");
 
-#region Configuracion de Identity
-builder
-    .Services.AddIdentity<GeneralUser, Role>(options =>
-    {
-        options.User.AllowedUserNameCharacters =
-            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
-        options.User.RequireUniqueEmail = true;
-        options.Password.RequireDigit = true;
-        options.Password.RequiredLength = 8;
-        options.Password.RequireNonAlphanumeric = false;
-        options.Password.RequireUppercase = true;
-        options.Password.RequireLowercase = true;
-    })
-    .AddRoles<Role>()
-    .AddEntityFrameworkStores<AppDbContext>()
-    .AddDefaultTokenProviders();
-#endregion
+    var builder = WebApplication.CreateBuilder(args);
 
-#region Configuracion de autenticacion y autorizacion
-builder
-    .Services.AddAuthentication(options =>
-    {
-        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    })
-    .AddJwtBearer(options =>
-    {
-        string? jwtSecret = builder.Configuration["Jwt:Key"];
-        if (string.IsNullOrEmpty(jwtSecret))
+    // Añade Serilog al host de la aplicación para que se integre con el sistema de logging de .NET.
+    builder.Host.UseSerilog(
+        (context, configuration) => configuration.ReadFrom.Configuration(context.Configuration)
+    );
+
+    builder.Services.AddControllers();
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen();
+
+    #region Configuracion de Identity
+    builder
+        .Services.AddIdentity<GeneralUser, Role>(options =>
         {
-            throw new InvalidOperationException("La clave secreta JWT no está configurada.");
-        }
-        options.TokenValidationParameters =
-            new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+            options.User.AllowedUserNameCharacters =
+                "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
+            options.User.RequireUniqueEmail = true;
+            options.Password.RequireDigit = true;
+            options.Password.RequiredLength = 8;
+            options.Password.RequireNonAlphanumeric = false;
+            options.Password.RequireUppercase = true;
+            options.Password.RequireLowercase = true;
+        })
+        .AddRoles<Role>()
+        .AddEntityFrameworkStores<AppDbContext>()
+        .AddDefaultTokenProviders();
+    #endregion
+
+    #region Configuracion de autenticacion y autorizacion
+    builder
+        .Services.AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
+        .AddJwtBearer(options =>
+        {
+            string? jwtSecret = builder.Configuration["Jwt:Key"];
+            if (string.IsNullOrEmpty(jwtSecret))
             {
-                ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(
-                    System.Text.Encoding.UTF8.GetBytes(jwtSecret)
-                ),
-                ValidateLifetime = true,
-                ValidateIssuer = false,
-                ValidateAudience = false,
-                ClockSkew = TimeSpan.Zero,
-            };
+                throw new InvalidOperationException("La clave secreta JWT no está configurada.");
+            }
+            options.TokenValidationParameters =
+                new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(
+                        System.Text.Encoding.UTF8.GetBytes(jwtSecret)
+                    ),
+                    ValidateLifetime = true,
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    ClockSkew = TimeSpan.Zero,
+                };
+        });
+    #endregion
+
+    #region Configuracion de Resend
+    builder.Services.AddOptions();
+    builder.Services.AddHttpClient<ResendClient>();
+    builder.Services.Configure<ResendClientOptions>(o =>
+    {
+        o.ApiToken = builder.Configuration.GetValue<string>("ResendApiKey")!;
     });
-#endregion
+    builder.Services.AddTransient<IResend, ResendClient>();
+    #endregion
 
-#region Configuracion de Resend
-builder.Services.AddOptions();
-builder.Services.AddHttpClient<ResendClient>();
-builder.Services.Configure<ResendClientOptions>(o =>
-{
-    o.ApiToken = builder.Configuration.GetValue<string>("ResendApiKey")!;
-});
-builder.Services.AddTransient<IResend, ResendClient>();
-#endregion
+    #region Configuracion de PostgreSQL
+    builder.Services.AddDbContext<AppDbContext>(options =>
+        options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
+    );
+    #endregion
 
-#region Configuracion de PostgreSQL
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
-);
-#endregion
+    #region Injeccion de dependencias
+    builder.Services.AddScoped<StudentMapper>();
+    builder.Services.AddScoped<IndividualMapper>();
+    builder.Services.AddScoped<CompanyMapper>();
+    builder.Services.AddScoped<AdminMapper>();
+    builder.Services.AddScoped<OfferMapper>();
+    builder.Services.AddScoped<IUserRepository, UserRepository>();
+    builder.Services.AddScoped<IOfferRepository, OfferRepository>();
+    builder.Services.AddScoped<IUserService, UserService>();
+    builder.Services.AddScoped<IEmailService, EmailService>();
+    builder.Services.AddScoped<ITokenService, TokenService>();
+    builder.Services.AddScoped<IOfferService, OfferService>();
+    builder.Services.AddScoped<IVerificationCodeRepository, VerificationCodeRepository>();
+    #endregion
 
-#region Injeccion de dependencias
-builder.Services.AddScoped<StudentMapper>();
-builder.Services.AddScoped<IndividualMapper>();
-builder.Services.AddScoped<CompanyMapper>();
-builder.Services.AddScoped<AdminMapper>();
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IEmailService, EmailService>();
-builder.Services.AddScoped<ITokenService, TokenService>();
-builder.Services.AddScoped<IVerificationCodeRepository, VerificationCodeRepository>();
-#endregion
+    var app = builder.Build();
 
-var app = builder.Build();
+    // Middleware de manejo de errores
+    app.UseMiddleware<bolsafeucn_back.src.API.Middlewares.ErrorHandlingMiddleware.ErrorHandlingMiddleware>();
 
-#region Inicializacion de la base de datos y mapeos
-using (var scope = app.Services.CreateScope())
-{
-    await DataSeeder.Initialize(app.Services);
+    // Esta es la forma correcta de llamar al seeder para evitar el deadlock.
+    await SeedAndMapDatabase(app);
 
-    MapperExtensions.ConfigureMapster(scope.ServiceProvider);
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseSwagger();
+        app.UseSwaggerUI();
+        Log.Information("Swagger UI habilitado en modo desarrollo");
+    }
+
+    app.UseHttpsRedirection();
+    app.UseAuthorization();
+    app.MapControllers();
+
+    Log.Information("Aplicación iniciada correctamente");
+    app.Run();
 }
-#endregion
-
-if (app.Environment.IsDevelopment())
+catch (Exception ex)
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    Log.Fatal(ex, "Application terminated unexpectedly");
+}
+finally
+{
+    Log.CloseAndFlush();
 }
 
-app.UseHttpsRedirection();
-app.UseAuthorization();
-app.MapControllers();
-app.Run();
+// Método auxiliar para inicializar la base de datos y los mapeos
+async Task SeedAndMapDatabase(IHost app)
+{
+    using var scope = app.Services.CreateScope();
+    var serviceProvider = scope.ServiceProvider;
+    var configuration = app.Services.GetRequiredService<IConfiguration>();
+
+    Log.Information("Iniciando seed de base de datos y configuración de mappers");
+    await DataSeeder.Initialize(configuration, serviceProvider);
+    MapperExtensions.ConfigureMapster(serviceProvider);
+    Log.Information("Seed de base de datos y configuración de mappers completados");
+}
