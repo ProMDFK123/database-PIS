@@ -7,7 +7,102 @@
 
 ---
 
-## 📑 Tabla de Contenidos
+## � Credenciales de Prueba Pre-configuradas
+
+El sistema incluye **4 usuarios de prueba** con credenciales fáciles de recordar. Todos tienen el email confirmado y están listos para usar:
+
+| Rol | Email | Contraseña | Descripción |
+|-----|-------|------------|-------------|
+| 👨‍🎓 **Estudiante** | `estudiante@alumnos.ucn.cl` | `Test123!` | Puede postular, ver detalles completos de ofertas |
+| 🏢 **Empresa** | `empresa@techcorp.cl` | `Test123!` | Puede crear ofertas, ver postulaciones |
+| 👤 **Particular** | `particular@ucn.cl` | `Test123!` | Puede crear ofertas, ver postulaciones |
+| 👑 **Admin** | `admin@ucn.cl` | `Test123!` | Administrador del sistema |
+
+### 🚀 Inicio Rápido
+
+**1. Inicia la aplicación:**
+```bash
+dotnet run
+```
+
+**2. Verifica en los logs que aparezcan las credenciales:**
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 CREDENCIALES DE PRUEBA:
+👨‍🎓 ESTUDIANTE: estudiante@alumnos.ucn.cl / Test123!
+🏢 EMPRESA: empresa@techcorp.cl / Test123!
+👤 PARTICULAR: particular@ucn.cl / Test123!
+👑 ADMIN: admin@ucn.cl / Test123!
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+**3. Usa estas credenciales en Postman:**
+```http
+POST http://localhost:5185/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "estudiante@alumnos.ucn.cl",
+  "password": "Test123!",
+  "rememberMe": true
+}
+
+→ Copiar el token JWT de la respuesta
+```
+
+**4. Configura el token en Postman:**
+- Tab **Authorization** → Type: **Bearer Token**
+- Pegar el token copiado
+- ✅ Listo para probar endpoints protegidos
+
+### ⚡ Prueba Rápida de Seguridad
+
+```http
+# 1. Login como Estudiante
+POST /api/auth/login
+Body: {"email": "estudiante@alumnos.ucn.cl", "password": "Test123!"}
+→ Guardar token como {{student_token}}
+
+# 2. Ver detalles COMPLETOS de oferta (como estudiante)
+GET /api/publications/offers/1
+Authorization: Bearer {{student_token}}
+→ ✅ Ves: description, remuneration, requirements, contactInfo
+
+# 3. Login como Empresa
+POST /api/auth/login
+Body: {"email": "empresa@techcorp.cl", "password": "Test123!"}
+→ Guardar token como {{company_token}}
+
+# 4. Ver detalles BÁSICOS de oferta (como empresa)
+GET /api/publications/offers/1
+Authorization: Bearer {{company_token}}
+→ ⚠️ Solo ves: title, company, location, dates (SIN datos sensibles)
+
+# 5. Intentar postular como empresa (DEBE FALLAR)
+POST /api/publications/offers/1/apply
+Authorization: Bearer {{company_token}}
+Body: {"motivationLetter": "..."}
+→ ❌ 403 Forbidden: "Solo los estudiantes pueden postular"
+
+# 6. Postular como estudiante (EXITOSO)
+POST /api/publications/offers/1/apply
+Authorization: Bearer {{student_token}}
+Body: {"motivationLetter": "Me interesa porque..."}
+→ ✅ 200 OK: Postulación creada
+```
+
+### 📝 Notas Importantes
+
+- ✅ **Todos los usuarios tienen email confirmado** - No necesitas verificar email
+- ✅ **Password universal** - Todos usan `Test123!` para facilitar testing
+- ✅ **Se crean automáticamente** - Al iniciar la app por primera vez
+- ⚠️ **Base de datos limpia** - Si eliminas la BD, se recrean automáticamente
+
+Para información completa sobre permisos y testing, ver [`TEST_CREDENTIALS.md`](./TEST_CREDENTIALS.md).
+
+---
+
+## �📑 Tabla de Contenidos
 
 1. [🔐 Autenticación (AuthController)](#-autenticación-authcontroller)
 2. [📰 Publicaciones (PublicationController)](#-publicaciones-publicationcontroller)
@@ -235,12 +330,42 @@ Todos los endpoints relacionados con publicaciones (ofertas laborales, voluntari
 
 ---
 
-## 📋 Endpoints Disponibles
+## � POLÍTICAS DE SEGURIDAD IMPORTANTES
+
+### ⚠️ Protección de Información Sensible
+
+El sistema implementa **protección multinivel** para garantizar que los estudiantes sean los beneficiarios:
+
+#### 🎓 SOLO ESTUDIANTES pueden:
+- ✅ **Postular a ofertas laborales** - Rol requerido: `Applicant`
+- ✅ **Ver DETALLES COMPLETOS** de ofertas (descripción, requisitos, contacto, remuneración)
+- ✅ **Ver sus propias postulaciones**
+
+#### 🏢 Empresas y Particulares (NO-Estudiantes):
+- ⚠️ **NO pueden postular** a ofertas (403 Forbidden)
+- ⚠️ **Solo ven información básica** de ofertas:
+  - ✅ Título, ubicación, tipo, fechas
+  - ❌ NO ven: Descripción completa, requisitos, contacto, remuneración
+- ℹ️ **Razón**: Evitar robo de información, contactos externos y proteger a estudiantes
+
+#### ✅ TODOS los usuarios autenticados pueden:
+- ✅ Crear ofertas laborales
+- ✅ Crear publicaciones de compra/venta
+
+#### 🏢 Solo Empresas/Particulares (Offerents) pueden:
+- ✅ Ver postulaciones a **sus** ofertas
+- ✅ Actualizar estado de postulaciones
+
+---
+
+## �📋 Endpoints Disponibles
 
 
 ### 🔐 Crear Publicaciones (Requiere autenticación JWT)
 
 #### 1. Crear Oferta Laboral/Voluntariado
+
+**IMPORTANTE:** Cualquier usuario autenticado puede crear ofertas (Estudiantes, Empresas, Particulares, Admins).
 
 ```http
 POST /api/publications/offers
@@ -258,7 +383,8 @@ Body:
   "location": "Antofagasta, Chile",
   "requirements": "2 años de experiencia en C#",
   "contactInfo": "rrhh@empresa.cl",
-  "imagesURL": ["https://example.com/image1.jpg"]
+  "imagesURL": ["https://example.com/image1.jpg"],
+  "isCvRequired": true
 }
 
 Response 200 OK:
@@ -274,6 +400,12 @@ Response 401 Unauthorized:
 }
 ```
 
+**Quién puede crear ofertas:**
+- ✅ Estudiantes (ejemplo: "Busco tutor de matemáticas")
+- ✅ Empresas (ofertas laborales formales)
+- ✅ Particulares (trabajos freelance)
+- ✅ Admins (ofertas institucionales)
+
 **OfferType:**
 - `0` = Trabajo (puede tener remuneración)
 - `1` = Voluntariado (remuneración DEBE ser 0)
@@ -286,6 +418,9 @@ Response 401 Unauthorized:
 - ✅ Voluntariados (`offerType = 1`) deben tener `remuneration = 0`
 - ✅ `remuneration`: 0 - $100.000.000
 - ✅ `imagesURL`: máximo 10 imágenes
+- ✅ `isCvRequired`: booleano (por defecto `true`)
+  - `true` = CV obligatorio para postular
+  - `false` = CV opcional, puede postular sin CV
 
 ---
 
@@ -356,8 +491,15 @@ Response 200 OK:
 
 #### 4. Ver Detalles de Oferta
 
+**🔐 PROTECCIÓN DE INFORMACIÓN SENSIBLE:**
+
+Este endpoint devuelve **información diferente** según el tipo de usuario:
+
+##### Para Estudiantes Autenticados (INFORMACIÓN COMPLETA):
+
 ```http
 GET /api/publications/offers/{id}
+Authorization: Bearer {STUDENT_JWT_TOKEN}
 
 Ejemplo: GET /api/publications/offers/1
 
@@ -367,23 +509,50 @@ Response 200 OK:
   "data": {
     "id": 1,
     "title": "Desarrollador Frontend",
-    "description": "Descripción completa...",
-    "remuneration": 1200000,
-    "location": "Antofagasta",
-    "requirements": "React, TypeScript, 2 años exp",
-    "contactInfo": "jobs@techcorp.cl",
-    "offerType": 0,
-    "endDate": "2025-12-31T23:59:59Z",
-    "deadlineDate": "2025-11-30T23:59:59Z",
-    "publicationDate": "2025-10-17T10:00:00Z",
+    "description": "Descripción completa con todos los detalles...",  ✅
     "companyName": "Tech Corp",
-    "companyEmail": "contact@techcorp.cl",
-    "imageUrls": ["https://..."],
-    "isActive": true
+    "location": "Antofagasta",
+    "postDate": "2025-10-17T10:00:00Z",
+    "endDate": "2025-12-31T23:59:59Z",
+    "remuneration": 1200000,  ✅
+    "offerType": "Trabajo"
   }
 }
+```
 
-Response 404 Not Found:
+##### Para NO-Estudiantes o Usuarios Anónimos (INFORMACIÓN BÁSICA):
+
+```http
+GET /api/publications/offers/1
+# Sin Authorization o con token de Empresa/Particular/Admin
+
+Response 200 OK:
+{
+  "message": "Información básica de oferta (inicia sesión como estudiante para ver detalles completos)",
+  "data": {
+    "id": 1,
+    "title": "Desarrollador Frontend",
+    "companyName": "Tech Corp",
+    "location": "Antofagasta",
+    "postDate": "2025-10-17T10:00:00Z",
+    "endDate": "2025-12-31T23:59:59Z",
+    "offerType": "Trabajo",
+    "message": "⚠️ Debes ser estudiante y estar autenticado para ver descripción completa, requisitos y remuneración"
+  }
+}
+```
+
+**Información OCULTA para NO-Estudiantes:**
+- ❌ `description` (puede contener información de contacto)
+- ❌ `remuneration` (datos de negocio sensibles)
+- ❌ Requisitos detallados
+- ❌ Información de contacto
+
+**⚠️ Razón de Seguridad:**
+Evitar que empresas competidoras roben contactos, que headhunters externos aprovechen la plataforma, y proteger la privacidad de las empresas ofertantes. **Los estudiantes son los beneficiarios del sistema**.
+
+**Response 404 Not Found:**
+```json
 {
   "message": "Oferta no encontrada",
   "data": null
@@ -459,21 +628,28 @@ Response 404 Not Found:
 
 ---
 
-### 📝 Postulaciones a Ofertas (JWT Required - Solo estudiantes)
+### 📝 Postulaciones a Ofertas (JWT Required - SOLO ESTUDIANTES)
 
-#### 7. Postular a una Oferta
+**⚠️ RESTRICCIÓN IMPORTANTE:** Solo usuarios con rol `Applicant` (Estudiantes) pueden postular a ofertas.
+
+#### 7. Postular a una Oferta (Postulación Directa)
+
+**Roles permitidos:** `Applicant` (Estudiantes únicamente)
+
+**⚠️ IMPORTANTE - CV Obligatorio u Opcional:**
+- Cada oferta define si requiere CV obligatorio con el campo `isCvRequired`
+- **CV Obligatorio** (`isCvRequired = true`): El estudiante DEBE tener CV en su perfil para postular
+- **CV Opcional** (`isCvRequired = false`): El estudiante puede postular sin CV, solo con sus datos básicos y carta de motivación opcional
 
 ```http
 POST /api/publications/offers/{id}/apply
-Authorization: Bearer {JWT_TOKEN}
-Content-Type: application/json
+Authorization: Bearer {STUDENT_JWT_TOKEN}
 
 Ejemplo: POST /api/publications/offers/15/apply
 
-Body:
-{
-  "motivationLetter": "Me interesa esta posición porque tengo experiencia en .NET y busco crecer profesionalmente..."
-}
+# SIN BODY - Postulación directa
+# El CV y carta de motivación se toman del perfil del estudiante
+# CV obligatorio SOLO si la oferta tiene isCvRequired = true
 
 Response 200 OK:
 {
@@ -496,9 +672,21 @@ Response 400 Bad Request:
   "data": null
 }
 
-Response 401 Unauthorized:
+Response 401 Unauthorized (sin CV cuando es obligatorio):
+{
+  "message": "Esta oferta requiere CV. Por favor, sube tu CV en tu perfil antes de postular",
+  "data": null
+}
+
+Response 401 Unauthorized (otro motivo):
 {
   "message": "El estudiante no es elegible para postular",
+  "data": null
+}
+
+Response 403 Forbidden:
+{
+  "message": "Solo los estudiantes pueden postular a ofertas",
   "data": null
 }
 
@@ -516,22 +704,35 @@ Response 409 Conflict:
 ```
 
 **Validaciones automáticas:**
-- ✅ Usuario debe ser estudiante
+- ✅ Usuario DEBE ser estudiante (rol `Applicant`)
+- ✅ Usuario DEBE tener `UserType = Estudiante`
 - ✅ Email `@alumnos.ucn.cl`
 - ✅ No puede estar baneado
-- ✅ Debe tener CV cargado
+- ⚠️ **CV obligatorio SOLO si la oferta lo requiere** (`isCvRequired = true`)
+  - Si `isCvRequired = true` → Debe tener CV cargado (error: "Esta oferta requiere CV. Por favor, sube tu CV en tu perfil antes de postular")
+  - Si `isCvRequired = false` → Puede postular sin CV
 - ✅ La oferta debe estar activa
 - ✅ No debe haber vencido la `deadlineDate`
 - ✅ La oferta no debe haber finalizado (`endDate`)
 - ✅ No puede haber postulado anteriormente
 
+**⚠️ Si intentas postular como Empresa/Particular/Admin:**
+```json
+{
+  "status": 403,
+  "message": "Forbidden - Solo estudiantes pueden postular a ofertas"
+}
+```
+
 ---
 
 #### 8. Ver Mis Postulaciones
 
+**Roles permitidos:** `Applicant` (Estudiantes únicamente)
+
 ```http
 GET /api/publications/offers/my-applications
-Authorization: Bearer {JWT_TOKEN}
+Authorization: Bearer {STUDENT_JWT_TOKEN}
 
 Response 200 OK:
 {
@@ -564,6 +765,20 @@ Response 401 Unauthorized:
 {
   "message": "No autenticado o token inválido",
   "data": null
+}
+
+Response 403 Forbidden:
+{
+  "message": "Solo los estudiantes pueden ver sus postulaciones",
+  "data": null
+}
+```
+
+**⚠️ Si intentas acceder como Empresa/Particular/Admin:**
+```json
+{
+  "status": 403,
+  "message": "Forbidden - Solo estudiantes pueden ver sus postulaciones"
 }
 ```
 
@@ -804,22 +1019,204 @@ El token contiene claims con información del usuario:
 
 ### Endpoints Protegidos (Requieren JWT)
 
-| Endpoint | Método | Requiere Auth | Rol Permitido |
-|----------|--------|---------------|---------------|
-| `/api/publications/offers` | POST | ✅ Sí | Company |
-| `/api/publications/buysells` | POST | ✅ Sí | Cualquiera |
-| `/api/publications/offers/{id}/apply` | POST | ✅ Sí | Student |
-| `/api/publications/offers/my-applications` | GET | ✅ Sí | Student |
-| `/api/job-applications/*` | * | ✅ Sí | Según endpoint |
-| `/api/publications/offers` | GET | ❌ No | Público |
-| `/api/publications/buysells` | GET | ❌ No | Público |
-| `/api/publications/offers/{id}` | GET | ❌ No | Público |
-| `/api/publications/buysells/{id}` | GET | ❌ No | Público |
-| `/api/auth/*` | POST | ❌ No | Público |
+| Endpoint | Método | Requiere Auth | Rol Permitido | Descripción |
+|----------|--------|---------------|---------------|-------------|
+| `/api/publications/offers` | POST | ✅ Sí | **Cualquiera** | Crear oferta laboral |
+| `/api/publications/buysells` | POST | ✅ Sí | **Cualquiera** | Crear buy/sell |
+| `/api/publications/offers/{id}/apply` | POST | ✅ Sí | **Applicant SOLO** | Postular a oferta |
+| `/api/publications/offers/my-applications` | GET | ✅ Sí | **Applicant SOLO** | Ver mis postulaciones |
+| `/api/job-applications/my-applications` | GET | ✅ Sí | **Applicant SOLO** | Ver mis postulaciones (alt) |
+| `/api/job-applications/offer/{id}` | GET | ✅ Sí | **Offerent** | Ver postulaciones de mi oferta |
+| `/api/job-applications/my-offers-applications` | GET | ✅ Sí | **Offerent** | Ver todas mis postulaciones |
+| `/api/job-applications/{id}/status` | PATCH | ✅ Sí | **Offerent** | Actualizar estado postulación |
+| `/api/publications/offers` | GET | ❌ No | **Público** | Ver ofertas (limitado para no-estudiantes) |
+| `/api/publications/buysells` | GET | ❌ No | **Público** | Ver buy/sells |
+| `/api/publications/offers/{id}` | GET | ❌ No | **Público** | Ver oferta (info completa solo para estudiantes) |
+| `/api/publications/buysells/{id}` | GET | ❌ No | **Público** | Ver buy/sell |
+| `/api/auth/*` | POST | ❌ No | **Público** | Auth endpoints |
+
+**Leyenda de Roles:**
+- `Applicant` = Estudiantes (`@alumnos.ucn.cl`)
+- `Offerent` = Empresas + Particulares
+- `Admin` = Administradores
+- `Cualquiera` = Cualquier usuario autenticado
+- `Público` = Sin autenticación requerida
 
 ---
 
 ## 🧪 Cómo Probar en Postman
+
+### Credenciales de Prueba
+
+El sistema incluye usuarios pre-configurados con credenciales fáciles:
+
+| Tipo | Email | Password | Rol |
+|------|-------|----------|-----|
+| 👨‍🎓 Estudiante | `estudiante@alumnos.ucn.cl` | `Test123!` | Applicant |
+| 🏢 Empresa | `empresa@techcorp.cl` | `Test123!` | Offerent |
+| 👤 Particular | `particular@ucn.cl` | `Test123!` | Offerent |
+| 👑 Admin | `admin@ucn.cl` | `Test123!` | Admin |
+
+Ver [`TEST_CREDENTIALS.md`](./TEST_CREDENTIALS.md) para detalles completos.
+
+---
+
+### Flujo de Testing Completo
+
+#### Escenario 1: Estudiante Postula a Oferta (EXITOSO)
+
+**Paso 1: Login como Estudiante**
+```http
+POST /api/auth/login
+Content-Type: application/json
+
+{
+  "email": "estudiante@alumnos.ucn.cl",
+  "password": "Test123!",
+  "rememberMe": true
+}
+
+→ Copiar el token de la respuesta
+```
+
+**Paso 2: Ver Ofertas Disponibles**
+```http
+GET /api/publications/offers
+# Sin Authorization (público)
+
+→ Copiar el ID de una oferta (ej: 1)
+```
+
+**Paso 3: Ver Detalles COMPLETOS (como estudiante)**
+```http
+GET /api/publications/offers/1
+Authorization: Bearer {token_estudiante}
+
+→ Deberías ver: description, remuneration, requirements, contactInfo
+```
+
+**Paso 4: Postular a la Oferta**
+```http
+POST /api/publications/offers/1/apply
+Authorization: Bearer {token_estudiante}
+Content-Type: application/json
+
+{
+  "motivationLetter": "Me interesa porque tengo experiencia relevante..."
+}
+
+→ Response 200 OK: "Postulación creada exitosamente"
+```
+
+**Paso 5: Ver Mis Postulaciones**
+```http
+GET /api/publications/offers/my-applications
+Authorization: Bearer {token_estudiante}
+
+→ Deberías ver tu postulación con status "Pendiente"
+```
+
+---
+
+#### Escenario 2: Empresa Intenta Postular (DEBE FALLAR - 403)
+
+**Paso 1: Login como Empresa**
+```http
+POST /api/auth/login
+{
+  "email": "empresa@techcorp.cl",
+  "password": "Test123!",
+  "rememberMe": true
+}
+
+→ Copiar token de empresa
+```
+
+**Paso 2: Intentar Postular (DEBE FALLAR)**
+```http
+POST /api/publications/offers/1/apply
+Authorization: Bearer {token_empresa}
+{
+  "motivationLetter": "Queremos postular..."
+}
+
+→ Response 403 Forbidden
+→ "Solo los estudiantes pueden postular a ofertas"
+```
+
+**Paso 3: Ver Detalles de Oferta (INFORMACIÓN LIMITADA)**
+```http
+GET /api/publications/offers/1
+Authorization: Bearer {token_empresa}
+
+→ Response 200 OK pero SIN: description, remuneration
+→ Mensaje: "⚠️ Debes ser estudiante para ver información completa"
+```
+
+**Paso 4: Crear Oferta (EXITOSO - Empresas SÍ pueden crear)**
+```http
+POST /api/publications/offers
+Authorization: Bearer {token_empresa}
+{
+  "title": "Desarrollador Full Stack",
+  "description": "Buscamos desarrollador...",
+  "endDate": "2025-12-31T23:59:59Z",
+  "deadlineDate": "2025-11-30T23:59:59Z",
+  "remuneration": 2000000,
+  "offerType": 0,
+  "location": "Antofagasta",
+  "requirements": "3 años de experiencia",
+  "contactInfo": "rrhh@techcorp.cl",
+  "imagesURL": []
+}
+
+→ Response 200 OK: "Oferta creada exitosamente"
+→ Copiar el ID de la oferta creada
+```
+
+**Paso 5: Ver Postulaciones a Mi Oferta**
+```http
+GET /api/job-applications/offer/{id_oferta_creada}
+Authorization: Bearer {token_empresa}
+
+→ Deberías ver las postulaciones de estudiantes
+```
+
+---
+
+#### Escenario 3: Usuario Anónimo (Sin Login)
+
+**Paso 1: Ver Listado de Ofertas (PÚBLICO)**
+```http
+GET /api/publications/offers
+# Sin Authorization
+
+→ Response 200 OK: Lista de ofertas
+```
+
+**Paso 2: Ver Detalles de Oferta (INFORMACIÓN LIMITADA)**
+```http
+GET /api/publications/offers/1
+# Sin Authorization
+
+→ Response 200 OK pero SIN datos sensibles
+→ Solo: title, companyName, location, dates, offerType
+→ NO incluye: description, remuneration, requirements
+```
+
+**Paso 3: Intentar Postular (DEBE FALLAR - 401)**
+```http
+POST /api/publications/offers/1/apply
+# Sin Authorization
+{
+  "motivationLetter": "..."
+}
+
+→ Response 401 Unauthorized
+→ "Usuario no autenticado"
+```
+
+---
 
 ### Paso 1: Registrar Usuario
 
@@ -884,6 +1281,79 @@ Authorization: Bearer {tu_token_aquí}
 
 ## 🆘 Errores Comunes y Soluciones
 
+### Error 415: Unsupported Media Type
+
+```json
+{
+  "type": "https://tools.ietf.org/html/rfc9110#section-15.5.16",
+  "title": "Unsupported Media Type",
+  "status": 415,
+  "traceId": "00-494a5ac1be8f7db5bac7288796df3810-992b8e7cabe1b869-00"
+}
+```
+
+**Causas:**
+- ❌ Falta el header `Content-Type: application/json`
+- ❌ El body no está en formato JSON
+- ❌ Estás usando **form-data** o **x-www-form-urlencoded** en lugar de **raw JSON**
+- ❌ El dropdown del body está en "Text" en lugar de "JSON"
+
+**Soluciones en Postman:**
+
+1. **Tab Headers:** Agregar manualmente si no existe
+   ```
+   Content-Type: application/json
+   ```
+
+2. **Tab Body:**
+   - Seleccionar **raw** (no form-data)
+   - Cambiar dropdown de "Text" a **JSON**
+
+3. **Verificar JSON válido:**
+   ```json
+   {
+     "title": "Desarrollador Backend",
+     "description": "Buscamos desarrollador con experiencia",
+     "endDate": "2025-12-31T23:59:59Z",
+     "deadlineDate": "2025-11-30T23:59:59Z",
+     "remuneration": 1500000,
+     "offerType": 0,
+     "location": "Antofagasta",
+     "requirements": "2 años de experiencia",
+     "contactInfo": "rrhh@empresa.cl",
+     "imagesURL": []
+   }
+   ```
+
+4. **Propiedades requeridas (no pueden faltar):**
+   - ✅ `title` (string, 5-200 caracteres)
+   - ✅ `description` (string, 10-2000 caracteres)
+   - ✅ `endDate` (DateTime en formato ISO 8601)
+   - ✅ `deadlineDate` (DateTime en formato ISO 8601)
+   - ✅ `remuneration` (number, 0-100000000)
+   - ✅ `offerType` (number: 0=Trabajo, 1=Voluntariado)
+
+5. **Propiedades opcionales:**
+   - `location` (string, max 200)
+   - `requirements` (string, max 1000)
+   - `contactInfo` (string, max 200)
+   - `imagesURL` (array de strings, max 10)
+
+**Configuración Visual Correcta:**
+```
+Body: ● raw  [JSON ▼]  ← Importante: JSON, no Text
+
+{
+  "title": "...",
+  "description": "...",
+  ...
+}
+```
+
+**Tip:** Si usas Postman, al seleccionar "JSON" en el dropdown, automáticamente agrega el header `Content-Type: application/json`.
+
+---
+
 ### Error 401: Unauthorized
 
 ```json
@@ -903,6 +1373,73 @@ Authorization: Bearer {tu_token_aquí}
 1. Verifica que el token esté en el header
 2. Verifica el formato: `Authorization: Bearer eyJhbG...`
 3. Genera un nuevo token con `/api/auth/login`
+
+---
+
+### Error 403: Forbidden (Nuevo - Restricción por Rol)
+
+```json
+{
+  "message": "Solo los estudiantes pueden postular a ofertas",
+  "data": null
+}
+```
+
+**Causas:**
+- ❌ Intentaste postular sin ser estudiante (rol Applicant)
+- ❌ Intentaste ver tus postulaciones sin ser estudiante
+- ❌ Intentaste modificar una postulación que no es tuya
+
+**Soluciones:**
+1. Verifica que tu usuario tenga el rol `Applicant` (estudiante)
+2. Solo usuarios con email `@alumnos.ucn.cl` pueden postular
+3. Usa las credenciales de prueba: `estudiante@alumnos.ucn.cl` / `Test123!`
+
+**Ejemplo de Testing:**
+```http
+# ❌ INCORRECTO (Empresa intenta postular)
+POST /api/publications/offers/1/apply
+Authorization: Bearer {token_empresa}
+→ 403 Forbidden
+
+# ✅ CORRECTO (Estudiante postula)
+POST /api/publications/offers/1/apply
+Authorization: Bearer {token_estudiante}
+→ 200 OK
+```
+
+---
+
+### Información Limitada al Ver Ofertas (Nuevo - Protección de Datos)
+
+**Situación:** Al hacer `GET /api/publications/offers/1` como empresa o sin login, no ves la información completa.
+
+```json
+{
+  "message": "Información básica de oferta (inicia sesión como estudiante para ver detalles completos)",
+  "data": {
+    "id": 1,
+    "title": "Desarrollador Backend",
+    "companyName": "Tech Corp",
+    "location": "Antofagasta",
+    "postDate": "2025-10-17T10:00:00Z",
+    "endDate": "2025-12-31T23:59:59Z",
+    "offerType": "Trabajo",
+    "message": "⚠️ Debes ser estudiante y estar autenticado para ver descripción completa, requisitos y remuneración"
+  }
+}
+```
+
+**¿Por qué?**
+- 🔒 Protección contra robo de información
+- 🔒 Evitar contactos externos a la plataforma
+- 🔒 Proteger datos sensibles de empresas
+- 🔒 Los estudiantes son los beneficiarios del sistema
+
+**Solución:**
+1. Inicia sesión como estudiante: `estudiante@alumnos.ucn.cl` / `Test123!`
+2. Usa el token de estudiante en la petición
+3. Ahora verás: `description`, `remuneration`, `requirements`, `contactInfo`
 
 ---
 
@@ -964,11 +1501,24 @@ Authorization: Bearer {tu_token_aquí}
 ```
 
 **Causas:**
-- Intentaste crear una oferta sin ser Company
-- Intentaste postular sin ser Student
+- Intentaste postular sin ser estudiante (rol Applicant)
+- Intentaste ver postulaciones sin ser estudiante
 - Intentaste modificar una postulación que no es tuya
+- Intentaste ver postulaciones de una oferta que no creaste
 
 **Solución:** Verifica que tu usuario tenga el rol correcto para esta acción.
+
+**Tabla de Permisos:**
+
+| Acción | Estudiante | Empresa | Particular | Admin |
+|--------|------------|---------|------------|-------|
+| Crear oferta | ✅ | ✅ | ✅ | ✅ |
+| Ver lista ofertas | ✅ | ✅ | ✅ | ✅ |
+| Ver detalles COMPLETOS oferta | ✅ | ❌ | ❌ | ❌ |
+| Postular a oferta | ✅ | ❌ | ❌ | ❌ |
+| Ver mis postulaciones | ✅ | ❌ | ❌ | ❌ |
+| Ver postulaciones de mi oferta | ❌ | ✅ | ✅ | ❌ |
+| Actualizar estado postulación | ❌ | ✅ | ✅ | ❌ |
 
 ---
 
@@ -1354,7 +1904,7 @@ Authorization: Bearer {student_token}
 
 ---
 
-## � Recursos Adicionales
+## 🔗 Recursos Adicionales
 
 - **Swagger UI:** `https://localhost:7169/swagger` (solo en Development)
 - **Logs:** Archivos JSON estructurados en carpeta `logs/`
@@ -1362,6 +1912,28 @@ Authorization: Bearer {student_token}
 - **Migraciones:** Ver carpeta `Migrations/`
 - **Autenticación:** JWT Bearer tokens (HS256)
 - **Tiempo de expiración token:** 7 días
+
+### 📚 Documentación de Testing
+
+Para realizar pruebas completas de la API en Postman, consulta los siguientes recursos:
+
+- **📖 Guía Completa de Testing:** [`POSTMAN_TESTING_GUIDE.md`](./POSTMAN_TESTING_GUIDE.md)
+  - 19 endpoints documentados con ejemplos completos
+  - Instrucciones paso a paso para cada endpoint
+  - Scripts de auto-guardado de variables
+  - Flujos de testing completos por rol de usuario
+  - Solución de errores comunes
+
+- **⚡ Referencia Rápida:** [`QUICK_REFERENCE.md`](./QUICK_REFERENCE.md)
+  - Tabla resumen de todos los endpoints
+  - Ejemplos de requests abreviados
+  - Variables y scripts útiles
+  - Orden recomendado de testing
+
+- **🔧 Configuración de Cloudinary:** [`CLOUDINARY_SETUP.md`](./CLOUDINARY_SETUP.md)
+  - Guía de implementación de subida de imágenes
+  - Configuración de Cloudinary
+  - Alternativas de implementación
 
 ---
 
@@ -1377,19 +1949,35 @@ Authorization: Bearer {student_token}
 | Rate Limiting | ❌ No implementado | Sin protección contra spam |
 | File Upload | ❌ No implementado | URLs de imágenes/CV son strings |
 | Email Service | ⚠️ Pendiente | Verificación de email configurada pero requiere SMTP |
+| Protección de Datos | ✅ **NUEVO** | Solo estudiantes ven información completa de ofertas |
+| Control de Acceso por Rol | ✅ **NUEVO** | Solo estudiantes pueden postular |
+
+### 🔐 Características de Seguridad Implementadas (V1.0)
+
+| Característica | Estado | Descripción |
+|----------------|--------|-------------|
+| JWT Authentication | ✅ Implementado | Tokens con expiración de 7 días |
+| Role-Based Authorization | ✅ Implementado | `Applicant`, `Offerent`, `Admin` |
+| Información Sensible Protegida | ✅ **NUEVO** | No-estudiantes no ven contacto ni detalles |
+| Validación Doble de Rol | ✅ **NUEVO** | `[Authorize(Roles)]` + verificación `UserType` |
+| Ownership Validation | ✅ Implementado | Solo puedes modificar tus recursos |
+| Email Confirmation | ✅ Implementado | Verificación obligatoria antes de login |
+| Password Hashing | ✅ Implementado | Identity Framework con hash seguro |
 
 ### Próximas Características (Roadmap)
 
 - [ ] Paginación y límite de resultados
 - [ ] Búsqueda full-text en publicaciones
-- [ ] Filtros avanzados (precio, ubicación, categoría)
+- [ ] Filtros avanzados (precio, ubicación, categoría, tipo de usuario)
 - [ ] Subida de archivos (imágenes, CV)
-- [ ] Notificaciones por email
+- [ ] Notificaciones por email (postulación recibida, estado actualizado)
 - [ ] Sistema de favoritos/guardados
-- [ ] Estadísticas y analytics
+- [ ] Estadísticas y analytics para empresas
 - [ ] Rate limiting por IP/usuario
-- [ ] Moderación de contenido
-- [ ] Sistema de reportes
+- [ ] Moderación de contenido por admins
+- [ ] Sistema de reportes de contenido inapropiado
+- [ ] Badges visuales en frontend (Empresa, Estudiante, Particular)
+- [ ] Historial de cambios de estado en postulaciones
 
 ---
 
@@ -1399,6 +1987,146 @@ Para más información sobre la API, consultar la documentación Swagger en:
 ```
 https://localhost:7169/swagger
 ```
+
+---
+
+## 🔐 Resumen de Políticas de Seguridad y Acceso
+
+### Matriz Completa de Permisos por Endpoint y Rol
+
+| Endpoint | Método | Anónimo | Estudiante | Empresa | Particular | Admin |
+|----------|--------|---------|------------|---------|------------|-------|
+| **Autenticación** |
+| `/api/auth/register/*` | POST | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `/api/auth/login` | POST | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `/api/auth/verify-email` | POST | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Ofertas Laborales - Lectura** |
+| `/api/publications/offers` (lista) | GET | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `/api/publications/offers/{id}` (detalles) | GET | ⚠️ Básico | ✅ Completo | ⚠️ Básico | ⚠️ Básico | ⚠️ Básico |
+| **Ofertas Laborales - Escritura** |
+| `/api/publications/offers` (crear) | POST | ❌ | ✅ | ✅ | ✅ | ✅ |
+| `/api/publications/offers/{id}/apply` | POST | ❌ | ✅ | ❌ | ❌ | ❌ |
+| `/api/publications/offers/my-applications` | GET | ❌ | ✅ | ❌ | ❌ | ❌ |
+| **Compra/Venta** |
+| `/api/publications/buysells` (lista) | GET | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `/api/publications/buysells/{id}` | GET | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `/api/publications/buysells` (crear) | POST | ❌ | ✅ | ✅ | ✅ | ✅ |
+| **Gestión de Postulaciones** |
+| `/api/job-applications/my-applications` | GET | ❌ | ✅ | ❌ | ❌ | ❌ |
+| `/api/job-applications/offer/{id}` | GET | ❌ | ❌ | ✅* | ✅* | ❌ |
+| `/api/job-applications/my-offers-applications` | GET | ❌ | ❌ | ✅ | ✅ | ❌ |
+| `/api/job-applications/{id}/status` | PATCH | ❌ | ❌ | ✅* | ✅* | ❌ |
+
+**Leyenda:**
+- ✅ = Acceso completo
+- ⚠️ = Acceso limitado (información básica sin datos sensibles)
+- ❌ = Sin acceso (401 Unauthorized o 403 Forbidden)
+- ✅* = Solo si es dueño del recurso
+
+---
+
+### 🎓 Información Visible Según Tipo de Usuario
+
+#### Endpoint: `GET /api/publications/offers/{id}`
+
+**Como Estudiante Autenticado:**
+```json
+{
+  "id": 1,
+  "title": "Desarrollador Backend",
+  "description": "Descripción completa con detalles...",  ✅
+  "companyName": "Tech Corp SpA",
+  "location": "Antofagasta",
+  "postDate": "2025-10-17T10:00:00Z",
+  "endDate": "2025-12-31T23:59:59Z",
+  "remuneration": 1500000,  ✅
+  "offerType": "Trabajo"
+}
+```
+
+**Como Empresa / Particular / Admin / Anónimo:**
+```json
+{
+  "id": 1,
+  "title": "Desarrollador Backend",
+  "companyName": "Tech Corp SpA",
+  "location": "Antofagasta",
+  "postDate": "2025-10-17T10:00:00Z",
+  "endDate": "2025-12-31T23:59:59Z",
+  "offerType": "Trabajo",
+  "message": "⚠️ Debes ser estudiante y estar autenticado para ver descripción completa, requisitos y remuneración"
+}
+```
+
+**Campos Ocultos para No-Estudiantes:**
+- ❌ `description`
+- ❌ `remuneration`
+- ❌ `requirements`
+- ❌ `contactInfo`
+
+---
+
+### 🛡️ Validaciones de Seguridad Implementadas
+
+#### Postulaciones (Apply to Offer)
+
+1. **Autorización por Atributo:**
+   ```csharp
+   [Authorize(Roles = "Applicant")]
+   ```
+
+2. **Validación Doble de UserType:**
+   ```csharp
+   if (currentUser.UserType != UserType.Estudiante)
+   {
+       return Forbid(); // 403
+   }
+   ```
+
+3. **Validaciones de Negocio:**
+   - ✅ Usuario no baneado
+   - ✅ Oferta activa
+   - ✅ Dentro de deadline
+   - ✅ No postulado previamente
+   - ✅ CV subido
+
+#### Ver Detalles de Oferta
+
+1. **Detección de Tipo de Usuario:**
+   ```csharp
+   var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+   bool isStudent = currentUser?.UserType == UserType.Estudiante;
+   ```
+
+2. **Respuesta Condicional:**
+   - Si `isStudent == true` → Información completa
+   - Si `isStudent == false` → Información básica + mensaje
+
+#### Gestión de Postulaciones (Empresas)
+
+1. **Validación de Propiedad:**
+   ```csharp
+   if (offer.UserId != currentUserId)
+   {
+       return Unauthorized(); // 401
+   }
+   ```
+
+2. **Solo Offerents:**
+   - Empresas y Particulares pueden ver sus postulaciones
+   - Estudiantes y Admins no tienen acceso
+
+---
+
+### 📚 Documentación Relacionada
+
+Para información completa sobre testing, credenciales y ejemplos:
+
+- **📖 Testing Completo:** [`POSTMAN_TESTING_GUIDE.md`](./POSTMAN_TESTING_GUIDE.md)
+- **🔑 Credenciales de Prueba:** [`TEST_CREDENTIALS.md`](./TEST_CREDENTIALS.md)
+- **⚡ Referencia Rápida:** [`QUICK_REFERENCE.md`](./QUICK_REFERENCE.md)
+- **🔄 Cambios de Permisos:** [`CAMBIOS_PERMISOS.md`](./CAMBIOS_PERMISOS.md)
+- **🔧 Configuración Cloudinary:** [`CLOUDINARY_SETUP.md`](./CLOUDINARY_SETUP.md)
 
 ---
 
