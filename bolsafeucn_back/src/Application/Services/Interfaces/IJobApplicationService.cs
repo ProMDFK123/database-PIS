@@ -8,12 +8,9 @@ namespace bolsafeucn_back.src.Application.Services.Interfaces
     public interface IJobApplicationService
     {
         /// <summary>
-        /// Crea una nueva postulación de un estudiante a una oferta
+        /// Crea una nueva postulación de un estudiante a una oferta (postulación directa)
         /// </summary>
-        Task<JobApplicationResponseDto> CreateApplicationAsync(
-            int studentId,
-            CreateJobApplicationDto dto
-        );
+        Task<JobApplicationResponseDto> CreateApplicationAsync(int studentId, int offerId);
 
         /// <summary>
         /// Obtiene todas las postulaciones de un estudiante
@@ -38,6 +35,6 @@ namespace bolsafeucn_back.src.Application.Services.Interfaces
         /// <summary>
         /// Valida si un estudiante es elegible para postular
         /// </summary>
-        Task<bool> ValidateStudentEligibilityAsync(int studentId);
+        Task<bool> ValidateStudentEligibilityAsync(int studentId, bool isCvRequired = true);
     }
 }

@@ -18,6 +18,7 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Interfaces
         Task<IEnumerable<GeneralUser>> GetAllAsync();
         Task<bool> ConfirmEmailAsync(string email);
         Task<GeneralUser?> GetByIdAsync(int id);
+        Task<GeneralUser?> GetByIdWithRelationsAsync(int id);
         Task<GeneralUser> AddAsync(GeneralUser usuario);
         Task<bool> DeleteAsync(int id);
     }

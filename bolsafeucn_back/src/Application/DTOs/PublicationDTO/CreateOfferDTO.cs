@@ -52,6 +52,12 @@ namespace bolsafeucn_back.src.Application.DTOs.PublicationDTO
         [MaxLength(10, ErrorMessage = "Máximo 10 imágenes permitidas")]
         public List<string> ImagesURL { get; set; } = new();
 
+        /// <summary>
+        /// Indica si el CV es obligatorio para postular a esta oferta
+        /// Por defecto es true (obligatorio)
+        /// </summary>
+        public bool IsCvRequired { get; set; } = true;
+
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
             var now = DateTime.UtcNow;

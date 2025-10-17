@@ -29,15 +29,12 @@ namespace bolsafeucn_back.src.API.Controllers
         #region Endpoints para Estudiantes
 
         /// <summary>
-        /// Permite a un estudiante postular a una oferta laboral
-        /// SEGURIDAD: El studentId se obtiene del token JWT
+        /// Permite a un estudiante postular a una oferta laboral (postulación directa)
+        /// SEGURIDAD: El studentId se obtiene del token JWT. CV obligatorio, carta opcional
         /// </summary>
         [HttpPost("apply/{offerId}")]
         [Authorize]
-        public async Task<ActionResult<JobApplicationResponseDto>> ApplyToOffer(
-            int offerId,
-            [FromBody] CreateJobApplicationDto dto
-        )
+        public async Task<ActionResult<JobApplicationResponseDto>> ApplyToOffer(int offerId)
         {
             try
             {
@@ -55,15 +52,15 @@ namespace bolsafeucn_back.src.API.Controllers
                 }
 
                 _logger.LogInformation(
-                    "POST /api/job-applications/apply/{OfferId} - Estudiante {StudentId} postulando",
+                    "POST /api/job-applications/apply/{OfferId} - Estudiante {StudentId} postulando directamente",
                     offerId,
                     studentId
                 );
 
-                dto.JobOfferId = offerId;
+                // Postulación directa - sin body
                 var application = await _jobApplicationService.CreateApplicationAsync(
                     studentId,
-                    dto
+                    offerId
                 );
 
                 return Ok(
@@ -75,7 +72,7 @@ namespace bolsafeucn_back.src.API.Controllers
             }
             catch (UnauthorizedAccessException ex)
             {
-                _logger.LogWarning(ex, "Postulación no autorizada");
+                _logger.LogWarning(ex, "Postulación no autorizada - {Message}", ex.Message);
                 return BadRequest(new GenericResponse<object>(ex.Message));
             }
             catch (KeyNotFoundException ex)

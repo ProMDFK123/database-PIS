@@ -21,7 +21,7 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Implements
         {
             try
             {
-                _context.Publications.Add(buySell);
+                _context.BuySells.Add(buySell);
                 await _context.SaveChangesAsync();
                 return buySell;
             }
@@ -34,19 +34,21 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Implements
         public async Task<IEnumerable<BuySell>> GetAllActiveAsync()
         {
             return await _context
-                .Publications.OfType<BuySell>()
-                .Where(bs => bs.IsActive)
+                .BuySells.Include(bs => bs.User)
+                .ThenInclude(u => u.Company)
                 .Include(bs => bs.User)
+                .ThenInclude(u => u.Individual)
                 .Include(bs => bs.Images)
+                .Where(bs => bs.IsActive)
                 .OrderByDescending(bs => bs.PublicationDate)
+                .AsNoTracking()
                 .ToListAsync();
         }
 
         public async Task<BuySell?> GetByIdAsync(int id)
         {
             return await _context
-                .Publications.OfType<BuySell>()
-                .Include(bs => bs.User)
+                .BuySells.Include(bs => bs.User)
                 .Include(bs => bs.Images)
                 .FirstOrDefaultAsync(bs => bs.Id == id);
         }
@@ -54,8 +56,7 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Implements
         public async Task<IEnumerable<BuySell>> GetByUserIdAsync(int userId)
         {
             return await _context
-                .Publications.OfType<BuySell>()
-                .Where(bs => bs.UserId == userId)
+                .BuySells.Where(bs => bs.UserId == userId)
                 .Include(bs => bs.Images)
                 .OrderByDescending(bs => bs.PublicationDate)
                 .ToListAsync();
@@ -65,7 +66,7 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Implements
         {
             try
             {
-                _context.Publications.Update(buySell);
+                _context.BuySells.Update(buySell);
                 await _context.SaveChangesAsync();
                 return buySell;
             }
@@ -96,8 +97,9 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Implements
         public async Task<IEnumerable<BuySell>> SearchByCategoryAsync(string category)
         {
             return await _context
-                .Publications.OfType<BuySell>()
-                .Where(bs => bs.IsActive && bs.Category.ToLower().Contains(category.ToLower()))
+                .BuySells.Where(bs =>
+                    bs.IsActive && bs.Category.ToLower().Contains(category.ToLower())
+                )
                 .Include(bs => bs.User)
                 .Include(bs => bs.Images)
                 .OrderByDescending(bs => bs.PublicationDate)
@@ -110,8 +112,7 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Implements
         )
         {
             return await _context
-                .Publications.OfType<BuySell>()
-                .Where(bs => bs.IsActive && bs.Price >= minPrice && bs.Price <= maxPrice)
+                .BuySells.Where(bs => bs.IsActive && bs.Price >= minPrice && bs.Price <= maxPrice)
                 .Include(bs => bs.User)
                 .Include(bs => bs.Images)
                 .OrderBy(bs => bs.Price)

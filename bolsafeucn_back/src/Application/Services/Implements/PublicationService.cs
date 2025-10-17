@@ -49,6 +49,7 @@ namespace bolsafeucn_back.src.Application.Services.Implements
                     Location = offerDTO.Location,
                     Requirements = offerDTO.Requirements,
                     ContactInfo = offerDTO.ContactInfo,
+                    IsCvRequired = offerDTO.IsCvRequired,
                     UserId = currentUser.Id,
                     User = currentUser,
                     Type = Types.Offer,

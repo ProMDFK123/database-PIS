@@ -71,16 +71,157 @@ namespace bolsafeucn_back.src.Application.Infrastructure.Data
             AppDbContext context
         )
         {
-            // ... (El resto del método SeedUsers se mantiene igual)
             var faker = new Faker("es");
 
-            // Seed Students
-            for (int i = 0; i < 5; i++)
+            // ========================================
+            // USUARIOS DE PRUEBA CON CREDENCIALES FÁCILES
+            // ========================================
+            Log.Information("DataSeeder: Creando usuarios de prueba con credenciales fáciles...");
+
+            // 1. ESTUDIANTE DE PRUEBA
+            var testStudentUser = new GeneralUser
+            {
+                UserName = "estudiante",
+                Email = "estudiante@alumnos.ucn.cl",
+                PhoneNumber = "+56912345678",
+                UserType = UserType.Estudiante,
+                Rut = "12345678-9",
+                EmailConfirmed = true,
+                Banned = false,
+            };
+            var studentResult = await userManager.CreateAsync(testStudentUser, "Test123!");
+            if (studentResult.Succeeded)
+            {
+                await userManager.AddToRoleAsync(testStudentUser, "Applicant");
+                var testStudent = new Student
+                {
+                    GeneralUserId = testStudentUser.Id,
+                    Name = "Juan",
+                    LastName = "Pérez Estudiante",
+                    Disability = Disability.Ninguna,
+                    GeneralUser = testStudentUser,
+                    CurriculumVitae = "https://ejemplo.com/cv/juan_perez.pdf", // CV de prueba
+                    MotivationLetter = "Soy un estudiante motivado y con ganas de aprender", // Carta opcional
+                };
+                context.Students.Add(testStudent);
+                Log.Information(
+                    "✅ Usuario estudiante creado: estudiante@alumnos.ucn.cl / Test123!"
+                );
+            }
+
+            // 2. EMPRESA DE PRUEBA
+            var testCompanyUser = new GeneralUser
+            {
+                UserName = "empresa",
+                Email = "empresa@techcorp.cl",
+                PhoneNumber = "+56987654321",
+                UserType = UserType.Empresa,
+                Rut = "76543210-K",
+                EmailConfirmed = true,
+                Banned = false,
+            };
+            var companyResult = await userManager.CreateAsync(testCompanyUser, "Test123!");
+            if (companyResult.Succeeded)
+            {
+                await userManager.AddToRoleAsync(testCompanyUser, "Offerent");
+                var testCompany = new Company
+                {
+                    GeneralUserId = testCompanyUser.Id,
+                    CompanyName = "Tech Corp SpA",
+                    LegalName = "Tecnología Corporativa SpA",
+                    GeneralUser = testCompanyUser,
+                };
+                context.Companies.Add(testCompany);
+                Log.Information("✅ Usuario empresa creado: empresa@techcorp.cl / Test123!");
+            }
+
+            // 3. PARTICULAR DE PRUEBA
+            var testIndividualUser = new GeneralUser
+            {
+                UserName = "particular",
+                Email = "particular@ucn.cl",
+                PhoneNumber = "+56955555555",
+                UserType = UserType.Particular,
+                Rut = "11222333-4",
+                EmailConfirmed = true,
+                Banned = false,
+            };
+            var individualResult = await userManager.CreateAsync(testIndividualUser, "Test123!");
+            if (individualResult.Succeeded)
+            {
+                await userManager.AddToRoleAsync(testIndividualUser, "Offerent");
+                var testIndividual = new Individual
+                {
+                    GeneralUserId = testIndividualUser.Id,
+                    Name = "María",
+                    LastName = "González Particular",
+                    GeneralUser = testIndividualUser,
+                };
+                context.Individuals.Add(testIndividual);
+                Log.Information("✅ Usuario particular creado: particular@ucn.cl / Test123!");
+            }
+
+            // 4. ADMIN DE PRUEBA
+            var testAdminUser = new GeneralUser
+            {
+                UserName = "admin",
+                Email = "admin@ucn.cl",
+                PhoneNumber = "+56911111111",
+                UserType = UserType.Administrador,
+                Rut = "99888777-6",
+                EmailConfirmed = true,
+                Banned = false,
+            };
+            var adminResult = await userManager.CreateAsync(testAdminUser, "Test123!");
+            if (adminResult.Succeeded)
+            {
+                await userManager.AddToRoleAsync(testAdminUser, "Admin");
+                var testAdmin = new Admin
+                {
+                    GeneralUserId = testAdminUser.Id,
+                    Name = "Carlos",
+                    LastName = "Admin Sistema",
+                    SuperAdmin = false,
+                    GeneralUser = testAdminUser,
+                };
+                context.Admins.Add(testAdmin);
+                Log.Information("✅ Usuario admin creado: admin@ucn.cl / Test123!");
+            }
+
+            Log.Information("DataSeeder: Usuarios de prueba creados exitosamente.");
+            Log.Information("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            Log.Information("📋 CREDENCIALES DE PRUEBA:");
+            Log.Information("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            Log.Information("👨‍🎓 ESTUDIANTE:");
+            Log.Information("   Email: estudiante@alumnos.ucn.cl");
+            Log.Information("   Pass:  Test123!");
+            Log.Information("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            Log.Information("🏢 EMPRESA:");
+            Log.Information("   Email: empresa@techcorp.cl");
+            Log.Information("   Pass:  Test123!");
+            Log.Information("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            Log.Information("👤 PARTICULAR:");
+            Log.Information("   Email: particular@ucn.cl");
+            Log.Information("   Pass:  Test123!");
+            Log.Information("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            Log.Information("👑 ADMIN:");
+            Log.Information("   Email: admin@ucn.cl");
+            Log.Information("   Pass:  Test123!");
+            Log.Information("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+
+            // ========================================
+            // USUARIOS ALEATORIOS ADICIONALES (Faker)
+            // ========================================
+            Log.Information("DataSeeder: Creando usuarios aleatorios adicionales...");
+
+            // Seed Random Students
+            for (int i = 0; i < 3; i++)
             {
                 var studentUser = new GeneralUser
                 {
                     UserName = faker.Internet.UserName(),
                     Email = faker.Internet.Email(),
+                    PhoneNumber = faker.Phone.PhoneNumber("+569########"),
                     UserType = UserType.Estudiante,
                     Rut = faker.Random.Replace("##.###.###-K"),
                     EmailConfirmed = true,
@@ -130,7 +271,7 @@ namespace bolsafeucn_back.src.Application.Infrastructure.Data
             }
 
             // Seed Individual
-            var individualUser = new GeneralUser
+            var randomIndividualUser = new GeneralUser
             {
                 UserName = faker.Internet.UserName(),
                 Email = faker.Internet.Email(),
@@ -139,21 +280,25 @@ namespace bolsafeucn_back.src.Application.Infrastructure.Data
                 EmailConfirmed = true,
                 Banned = false,
             };
-            var individualResult = await userManager.CreateAsync(individualUser, "Password123!");
-            if (individualResult.Succeeded)
+            var randomIndividualResult = await userManager.CreateAsync(
+                randomIndividualUser,
+                "Password123!"
+            );
+            if (randomIndividualResult.Succeeded)
             {
-                await userManager.AddToRoleAsync(individualUser, "Offerent");
-                var individual = new Individual
+                await userManager.AddToRoleAsync(randomIndividualUser, "Offerent");
+                var randomIndividual = new Individual
                 {
-                    GeneralUserId = individualUser.Id,
+                    GeneralUserId = randomIndividualUser.Id,
                     Name = faker.Name.FirstName(),
                     LastName = faker.Name.LastName(),
-                    GeneralUser = individualUser,
+                    GeneralUser = randomIndividualUser,
                 };
-                context.Individuals.Add(individual);
+                context.Individuals.Add(randomIndividual);
             }
 
             await context.SaveChangesAsync();
+            Log.Information("DataSeeder: Todos los usuarios creados exitosamente.");
         }
 
         private static async Task SeedOffers(AppDbContext context)

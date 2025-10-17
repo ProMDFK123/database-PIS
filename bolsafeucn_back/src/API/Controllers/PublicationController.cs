@@ -3,6 +3,7 @@ using bolsafeucn_back.src.Application.DTOs.BaseResponse;
 using bolsafeucn_back.src.Application.DTOs.JobAplicationDTO;
 using bolsafeucn_back.src.Application.DTOs.PublicationDTO;
 using bolsafeucn_back.src.Application.Services.Interfaces;
+using bolsafeucn_back.src.Domain.Models;
 using bolsafeucn_back.src.Infrastructure.Repositories.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -44,6 +45,7 @@ namespace bolsafeucn_back.src.API.Controllers
 
         /// <summary>
         /// Crea una nueva oferta laboral o de voluntariado
+        /// Cualquier usuario autenticado puede crear ofertas
         /// </summary>
         [HttpPost("offers")]
         [Authorize]
@@ -83,6 +85,7 @@ namespace bolsafeucn_back.src.API.Controllers
 
         /// <summary>
         /// Crea una nueva publicación de compra/venta
+        /// Cualquier usuario autenticado puede crear publicaciones de compra/venta
         /// </summary>
         [HttpPost("buysells")]
         [Authorize]
@@ -148,6 +151,8 @@ namespace bolsafeucn_back.src.API.Controllers
 
         /// <summary>
         /// Obtiene los detalles de una oferta laboral específica
+        /// SEGURIDAD: Solo estudiantes ven información completa (contacto, requisitos)
+        /// Otros usuarios ven información básica sin datos sensibles
         /// </summary>
         [HttpGet("offers/{id}")]
         public async Task<IActionResult> GetOfferDetails(int id)
@@ -156,6 +161,32 @@ namespace bolsafeucn_back.src.API.Controllers
                 "GET /api/publications/offers/{Id} - Obteniendo detalles de oferta",
                 id
             );
+
+            // Verificar si el usuario está autenticado y es estudiante
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            bool isStudent = false;
+            string userTypeDebug = "NO AUTENTICADO";
+
+            if (!string.IsNullOrEmpty(userIdClaim) && int.TryParse(userIdClaim, out int userId))
+            {
+                var currentUser = await _userRepository.GetGeneralUserByIdAsync(userId);
+                if (currentUser != null)
+                {
+                    isStudent = currentUser.UserType == UserType.Estudiante;
+                    userTypeDebug = currentUser.UserType.ToString();
+                    _logger.LogInformation(
+                        "Usuario autenticado: ID={UserId}, UserType={UserType}, EsEstudiante={IsStudent}",
+                        userId,
+                        userTypeDebug,
+                        isStudent
+                    );
+                }
+            }
+            else
+            {
+                _logger.LogInformation("Usuario NO autenticado o sin token JWT válido");
+            }
+
             var offer = await _offerService.GetOfferDetailsAsync(id);
 
             if (offer == null)
@@ -163,6 +194,43 @@ namespace bolsafeucn_back.src.API.Controllers
                 _logger.LogWarning("Oferta {Id} no encontrada", id);
                 return NotFound(new GenericResponse<object>("Oferta no encontrada"));
             }
+
+            // Si NO es estudiante, ocultar información sensible
+            if (!isStudent)
+            {
+                var basicOffer = new
+                {
+                    Id = offer.Id,
+                    Title = offer.Title,
+                    CompanyName = offer.CompanyName,
+                    Location = offer.Location,
+                    PostDate = offer.PostDate,
+                    EndDate = offer.EndDate,
+                    OfferType = offer.OfferType,
+                    // NO incluir: Description, Remuneration
+                    Message = "⚠️ Debes ser estudiante y estar autenticado para ver descripción completa, requisitos y remuneración",
+                    Debug_UserType = userTypeDebug,
+                };
+
+                _logger.LogInformation(
+                    "Oferta {Id} - Usuario no-estudiante ({UserType}), devolviendo información básica SIN description/remuneration",
+                    id,
+                    userTypeDebug
+                );
+
+                return Ok(
+                    new GenericResponse<object>(
+                        "Información básica de oferta (inicia sesión como estudiante para ver detalles completos)",
+                        basicOffer
+                    )
+                );
+            }
+
+            // Si es estudiante, devolver información completa
+            _logger.LogInformation(
+                "Oferta {Id} - Usuario estudiante, devolviendo información completa CON description/remuneration",
+                id
+            );
 
             return Ok(
                 new GenericResponse<object>("Detalles de oferta recuperados exitosamente", offer)
@@ -223,14 +291,12 @@ namespace bolsafeucn_back.src.API.Controllers
 
         /// <summary>
         /// Permite a un estudiante postular a una oferta laboral
-        /// SEGURIDAD: El studentId se obtiene del token JWT
+        /// POSTULACIÓN DIRECTA: No requiere body. Se valida CV obligatorio del perfil
+        /// SEGURIDAD: Solo estudiantes pueden postular. El studentId se obtiene del token JWT
         /// </summary>
         [HttpPost("offers/{id}/apply")]
-        [Authorize]
-        public async Task<ActionResult<JobApplicationResponseDto>> ApplyToOffer(
-            int id,
-            [FromBody] CreateJobApplicationDto dto
-        )
+        [Authorize(Roles = "Applicant")]
+        public async Task<ActionResult<JobApplicationResponseDto>> ApplyToOffer(int id)
         {
             try
             {
@@ -247,16 +313,28 @@ namespace bolsafeucn_back.src.API.Controllers
                     );
                 }
 
+                // Verificar que el usuario sea realmente un estudiante
+                var currentUser = await _userRepository.GetGeneralUserByIdAsync(studentId);
+                if (currentUser == null || currentUser.UserType != UserType.Estudiante)
+                {
+                    _logger.LogWarning(
+                        "Usuario {UserId} con tipo {UserType} intentó postular (solo estudiantes permitidos)",
+                        studentId,
+                        currentUser?.UserType
+                    );
+                    return Forbid();
+                }
+
                 _logger.LogInformation(
                     "POST /api/publications/offers/{Id}/apply - Estudiante {StudentId} postulando a oferta",
                     id,
                     studentId
                 );
 
-                dto.JobOfferId = id;
+                // Postulación directa - sin body
                 var application = await _jobApplicationService.CreateApplicationAsync(
                     studentId,
-                    dto
+                    id
                 );
 
                 return Ok(
@@ -268,7 +346,7 @@ namespace bolsafeucn_back.src.API.Controllers
             }
             catch (UnauthorizedAccessException ex)
             {
-                _logger.LogWarning(ex, "Postulación no autorizada");
+                _logger.LogWarning(ex, "Postulación no autorizada - {Message}", ex.Message);
                 return BadRequest(new GenericResponse<object>(ex.Message));
             }
             catch (KeyNotFoundException ex)
@@ -285,10 +363,10 @@ namespace bolsafeucn_back.src.API.Controllers
 
         /// <summary>
         /// Obtiene todas las postulaciones del estudiante autenticado
-        /// SEGURIDAD: El studentId se obtiene del token JWT
+        /// SEGURIDAD: Solo estudiantes pueden ver sus postulaciones. El studentId se obtiene del token JWT
         /// </summary>
         [HttpGet("offers/my-applications")]
-        [Authorize]
+        [Authorize(Roles = "Applicant")]
         public async Task<ActionResult<IEnumerable<JobApplicationResponseDto>>> GetMyApplications()
         {
             try

@@ -48,5 +48,12 @@ namespace bolsafeucn_back.src.Domain.Models
         /// Información de contacto (email o teléfono)
         /// </summary>
         public string? ContactInfo { get; set; }
+
+        /// <summary>
+        /// Indica si el CV es obligatorio para postular a esta oferta
+        /// true = CV obligatorio (no puede postular sin CV)
+        /// false = CV opcional (puede postular solo con carta de motivación)
+        /// </summary>
+        public bool IsCvRequired { get; set; } = true; // Por defecto es obligatorio
     }
 }

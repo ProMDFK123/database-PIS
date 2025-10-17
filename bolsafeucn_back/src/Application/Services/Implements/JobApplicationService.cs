@@ -24,20 +24,31 @@ namespace bolsafeucn_back.src.Application.Services.Implements
 
         public async Task<JobApplicationResponseDto> CreateApplicationAsync(
             int studentId,
-            CreateJobApplicationDto dto
+            int offerId
         )
         {
-            // Validar elegibilidad del estudiante
-            if (!await ValidateStudentEligibilityAsync(studentId))
-            {
-                throw new UnauthorizedAccessException("El estudiante no es elegible para postular");
-            }
-
             // Verificar que la oferta existe y está activa
-            var offer = await _offerRepository.GetByIdAsync(dto.JobOfferId);
+            var offer = await _offerRepository.GetByIdAsync(offerId);
             if (offer == null || !offer.IsActive)
             {
                 throw new KeyNotFoundException("La oferta no existe o no está activa");
+            }
+
+            // Validar elegibilidad del estudiante (incluye validación de CV si es obligatorio)
+            if (!await ValidateStudentEligibilityAsync(studentId, offer.IsCvRequired))
+            {
+                if (offer.IsCvRequired)
+                {
+                    throw new UnauthorizedAccessException(
+                        "Esta oferta requiere CV. Por favor, sube tu CV en tu perfil antes de postular"
+                    );
+                }
+                else
+                {
+                    throw new UnauthorizedAccessException(
+                        "El estudiante no es elegible para postular"
+                    );
+                }
             }
 
             // Validar que la fecha límite no haya expirado
@@ -57,26 +68,26 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             // Verificar que no haya postulado anteriormente
             var existingApplication = await _jobApplicationRepository.GetByStudentAndOfferAsync(
                 studentId,
-                dto.JobOfferId
+                offerId
             );
             if (existingApplication != null)
             {
                 throw new InvalidOperationException("Ya has postulado a esta oferta");
             }
 
-            // Obtener datos del estudiante
-            var student = await _userRepository.GetByIdAsync(studentId);
+            // Obtener datos del estudiante con sus relaciones
+            var student = await _userRepository.GetByIdWithRelationsAsync(studentId);
             if (student == null || student.Student == null)
             {
                 throw new KeyNotFoundException("Estudiante no encontrado");
             }
 
-            // Crear la postulación
+            // Crear la postulación (CV obligatorio, carta de motivación opcional del perfil)
             var jobApplication = new JobApplication
             {
                 StudentId = studentId,
                 Student = student,
-                JobOfferId = dto.JobOfferId,
+                JobOfferId = offerId,
                 JobOffer = offer,
                 Status = "Pendiente",
                 ApplicationDate = DateTime.UtcNow,
@@ -93,7 +104,7 @@ namespace bolsafeucn_back.src.Application.Services.Implements
                 Status = createdApplication.Status,
                 ApplicationDate = createdApplication.ApplicationDate,
                 CurriculumVitae = student.Student.CurriculumVitae,
-                MotivationLetter = dto.MotivationLetter ?? student.Student.MotivationLetter,
+                MotivationLetter = student.Student.MotivationLetter, // Carta opcional del perfil
             };
         }
 
@@ -193,9 +204,12 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             return true;
         }
 
-        public async Task<bool> ValidateStudentEligibilityAsync(int studentId)
+        public async Task<bool> ValidateStudentEligibilityAsync(
+            int studentId,
+            bool isCvRequired = true
+        )
         {
-            var student = await _userRepository.GetByIdAsync(studentId);
+            var student = await _userRepository.GetByIdWithRelationsAsync(studentId);
 
             if (student == null || student.UserType != UserType.Estudiante)
                 return false;
@@ -208,9 +222,15 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             if (student.Banned)
                 return false;
 
-            // Verificar que tenga CV
-            if (student.Student == null || string.IsNullOrEmpty(student.Student.CurriculumVitae))
-                return false;
+            // Verificar que tenga CV SOLO si es obligatorio
+            if (isCvRequired)
+            {
+                if (
+                    student.Student == null
+                    || string.IsNullOrEmpty(student.Student.CurriculumVitae)
+                )
+                    return false;
+            }
 
             return true;
         }
