@@ -15,11 +15,13 @@ namespace bolsafeucn_back.src.Infrastructure.Data
         public DbSet<Individual> Individuals { get; set; }
         public DbSet<Admin> Admins { get; set; }
         public DbSet<VerificationCode> VerificationCodes { get; set; }
-
+        public DbSet<Publication> Publications { get; set; }
         public DbSet<Offer> Offers { get; set; }
         public DbSet<JobApplication> JobApplications { get; set; }
 
         // public DbSet<Review> Reviews { get; set; } // Desactivado temporalmente
+        //public DbSet<JobApplication> Postulaciones { get; set; }
+        //public DbSet<Review> Evaluaciones { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -54,20 +56,19 @@ namespace bolsafeucn_back.src.Infrastructure.Data
                 .HasForeignKey<Individual>(i => i.GeneralUserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Relaciones de Offer
-            builder
-                .Entity<Offer>()
-                .HasOne(o => o.Oferente)
-                .WithMany()
-                .HasForeignKey(o => o.OferenteId)
-                .OnDelete(DeleteBehavior.Cascade);
-
             // Relaciones de JobApplication
             builder
                 .Entity<JobApplication>()
                 .HasOne(ja => ja.Estudiante)
                 .WithMany()
-                .HasForeignKey(ja => ja.EstudianteId)
+                .HasForeignKey(ja => ja.EstudianteId);
+
+            // Relaciones de Publication
+            builder
+                .Entity<Publication>()
+                .HasOne(p => p.User)
+                .WithMany(u => u.Publications)
+                .HasForeignKey(p => p.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }

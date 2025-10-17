@@ -8,21 +8,33 @@ public class OfferMapper
 {
     public void ConfigureAllMappings()
     {
-        TypeAdapterConfig<Offer, OfferSummaryDto>.NewConfig()
-            .Map(dest => dest.Title, src => src.Titulo)
-            .Map(dest => dest.CompanyName, src => 
-                src.Oferente.UserType == UserType.Empresa ? src.Oferente.Company!.CompanyName : 
-                src.Oferente.UserType == UserType.Particular ? $"{src.Oferente.Individual!.Name} {src.Oferente.Individual!.LastName}" : "Desconocido");
+        TypeAdapterConfig<Offer, OfferSummaryDto>
+            .NewConfig()
+            .Map(dest => dest.Title, src => src.Title)
+            .Map(
+                dest => dest.CompanyName,
+                src =>
+                    src.User.UserType == UserType.Empresa ? src.User.Company!.CompanyName
+                    : src.User.UserType == UserType.Particular
+                        ? $"{src.User.Individual!.Name} {src.User.Individual!.LastName}"
+                    : "Desconocido"
+            );
 
-        TypeAdapterConfig<Offer, OfferDetailDto>.NewConfig()
-            .Map(dest => dest.Title, src => src.Titulo)
-            .Map(dest => dest.Description, src => src.Descripcion)
-            .Map(dest => dest.PostDate, src => src.FechaPublicacion)
+        TypeAdapterConfig<Offer, OfferDetailDto>
+            .NewConfig()
+            .Map(dest => dest.Title, src => src.Title)
+            .Map(dest => dest.Description, src => src.Description)
+            .Map(dest => dest.PostDate, src => src.PublicationDate)
             .Map(dest => dest.EndDate, src => src.FechaFin)
             .Map(dest => dest.Remuneration, src => src.Remuneracion)
             .Map(dest => dest.OfferType, src => src.Tipo.ToString())
-            .Map(dest => dest.CompanyName, src => 
-                src.Oferente.UserType == UserType.Empresa ? src.Oferente.Company!.CompanyName : 
-                src.Oferente.UserType == UserType.Particular ? $"{src.Oferente.Individual!.Name} {src.Oferente.Individual!.LastName}" : "Desconocido");
+            .Map(
+                dest => dest.CompanyName,
+                src =>
+                    src.User.UserType == UserType.Empresa ? src.User.Company!.CompanyName
+                    : src.User.UserType == UserType.Particular
+                        ? $"{src.User.Individual!.Name} {src.User.Individual!.LastName}"
+                    : "Desconocido"
+            );
     }
 }

@@ -158,7 +158,6 @@ namespace bolsafeucn_back.src.Application.Infrastructure.Data
 
         private static async Task SeedOffers(AppDbContext context)
         {
-            // ... (El resto del método SeedOffers se mantiene igual)
             var faker = new Faker("es");
             var offerents = await context
                 .Users.Where(u =>
@@ -174,10 +173,16 @@ namespace bolsafeucn_back.src.Application.Infrastructure.Data
                 var selectedOfferent = faker.PickRandom(offerents);
                 var offer = new Offer
                 {
-                    OferenteId = selectedOfferent.Id,
-                    Oferente = selectedOfferent,
-                    Titulo = faker.Lorem.Sentence(3),
-                    Descripcion = faker.Lorem.Paragraph(),
+                    // Propiedades de Publication (clase base)
+                    UserId = selectedOfferent.Id,
+                    User = selectedOfferent,
+                    Title = faker.Lorem.Sentence(3),
+                    Description = faker.Lorem.Paragraph(),
+                    PublicationDate = DateTime.UtcNow,
+                    Type = Types.Offer,
+                    IsActive = true,
+
+                    // Propiedades específicas de Offer
                     FechaFin = DateTime.UtcNow.AddDays(faker.Random.Int(10, 30)),
                     FechaLimite = DateTime.UtcNow.AddDays(faker.Random.Int(5, 9)),
                     Remuneracion = faker.Random.Int(500, 2000),
