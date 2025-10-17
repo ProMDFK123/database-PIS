@@ -22,6 +22,10 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Inyección de dependencias
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
+builder.Services.AddScoped<IOfferRepository, OfferRepository>();
+builder.Services.AddScoped<IOfferService, OfferService>();
+builder.Services.AddScoped<IJobApplicationRepository, JobApplicationRepository>();
+builder.Services.AddScoped<IJobApplicationService, JobApplicationService>();
 
 var app = builder.Build();
 

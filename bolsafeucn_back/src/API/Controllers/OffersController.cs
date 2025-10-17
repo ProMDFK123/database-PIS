@@ -16,10 +16,12 @@ namespace bolsafeucn_back.src.API.Controllers
     public class OffersController : ControllerBase
     {
         private readonly IOfferService _offerService;
+        private readonly IJobApplicationService _jobApplicationService;
 
-        public OffersController(IOfferService offerService)
+        public OffersController(IOfferService offerService, IJobApplicationService jobApplicationService)
         {
             _offerService = offerService;
+            _jobApplicationService = jobApplicationService;
         }
 
         // GET: api/Offers/5
@@ -32,6 +34,38 @@ namespace bolsafeucn_back.src.API.Controllers
                 return NotFound(new { message = "Oferta no encontrada" });
             }
             return Ok(new { message = "Detalles de la oferta recuperados con éxito", data = offerDetails });
+        }
+
+        // POST: api/Offers/{id}/apply
+        [HttpPost("{id}/apply")]
+        public async Task<ActionResult<JobApplicationResponseDto>> ApplyToOffer(int id, [FromBody] CreateJobApplicationDto dto, [FromQuery] string studentId)
+        {
+            try
+            {
+                dto.OfertaLaboralId = id;
+                var application = await _jobApplicationService.CreateApplicationAsync(studentId, dto);
+                return Ok(new GenericResponse<JobApplicationResponseDto>("Postulación creada exitosamente", application));
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return BadRequest(new GenericResponse<object>(ex.Message));
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new GenericResponse<object>(ex.Message));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(new GenericResponse<object>(ex.Message));
+            }
+        }
+
+        // GET: api/Offers/my-applications
+        [HttpGet("my-applications")]
+        public async Task<ActionResult<IEnumerable<JobApplicationResponseDto>>> GetMyApplications([FromQuery] string studentId)
+        {
+            var applications = await _jobApplicationService.GetStudentApplicationsAsync(studentId);
+            return Ok(new GenericResponse<IEnumerable<JobApplicationResponseDto>>("Postulaciones recuperadas exitosamente", applications));
         }
     }
 }
