@@ -15,8 +15,8 @@ namespace bolsafeucn_back.src.Infrastructure.Data
         public DbSet<Individual> Individuals { get; set; }
         public DbSet<Admin> Admins { get; set; }
         public DbSet<VerificationCode> VerificationCodes { get; set; }
+        public DbSet<Publication> Publications { get; set; }
 
-        //public DbSet<Offer> Ofertas { get; set; }
         //public DbSet<JobApplication> Postulaciones { get; set; }
         //public DbSet<Review> Evaluaciones { get; set; }
 
@@ -46,6 +46,12 @@ namespace bolsafeucn_back.src.Infrastructure.Data
                 .HasOne(i => i.GeneralUser)
                 .WithOne()
                 .HasForeignKey<Individual>(i => i.GeneralUserId)
+                .OnDelete(DeleteBehavior.Cascade);
+            builder
+                .Entity<Publication>()
+                .HasOne(p => p.User)
+                .WithMany(u => u.Publications)
+                .HasForeignKey(p => p.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }
