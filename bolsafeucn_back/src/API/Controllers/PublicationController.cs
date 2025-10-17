@@ -8,13 +8,11 @@ namespace bolsafeucn_back.src.API.Controllers
 {
     public class PublicationController(
         IPublicationService publicationService,
-        IUserService userService,
         IUserRepository userRepository
     ) : BaseController
     {
         private readonly IPublicationService _publicationService = publicationService;
-        private readonly IUserService _userService = userService;
-        private readonly IUserRepository _userRepository;
+        private readonly IUserRepository _userRepository = userRepository;
         [HttpPost("offers")]
         public async Task<IActionResult> CreateOffer([FromBody] CreateOfferDTO dto)
         {

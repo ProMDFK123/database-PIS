@@ -1,6 +1,6 @@
 namespace bolsafeucn_back.src.Application.DTO.PublicationDTO
 {
-    public class CreateBuySellDTO 
+    public class CreateBuySellDTO
     {
         public required string Title { get; set; }
         public required string Description { get; set; }
