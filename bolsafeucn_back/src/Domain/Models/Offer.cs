@@ -1,25 +1,43 @@
 namespace bolsafeucn_back.src.Domain.Models
 {
-    public enum Tipos
+    /// <summary>
+    /// Enum que define los tipos de ofertas disponibles en el sistema
+    /// </summary>
+    public enum OfferTypes
     {
         Trabajo,
         Voluntariado,
         CompraVenta,
     }
 
-    public class Offer
+    /// <summary>
+    /// Representa una oferta laboral, voluntariado o compra/venta publicada en el sistema
+    /// </summary>
+    public class Offer : Publication
     {
-        public int Id { get; set; }
-        public required GeneralUser Oferente { get; set; }
-        public required string OferenteId { get; set; }
-        public required string Titulo { get; set; }
-        public required string Descripcion { get; set; }
-                public DateTime FechaPublicacion { get; set; } = DateTime.Now;
-        public DateTime FechaFin { get; set; }
-        public DateTime FechaLimite { get; set; }
-        public ICollection<Image> Imagenes { get; set; } = new List<Image>();
-        public required int Remuneracion { get; set; }
-        public required Tipos Tipo { get; set; }
-        public bool Activa { get; set; }
+        /// <summary>
+        /// Fecha de finalización de la oferta
+        /// </summary>
+        public DateTime EndDate { get; set; }
+
+        /// <summary>
+        /// Fecha límite para postular a la oferta
+        /// </summary>
+        public DateTime DeadlineDate { get; set; }
+
+        /// <summary>
+        /// Remuneración ofrecida (en pesos chilenos)
+        /// </summary>
+        public required int Remuneration { get; set; }
+
+        /// <summary>
+        /// Tipo de oferta (Trabajo, Voluntariado, CompraVenta)
+        /// </summary>
+        public required OfferTypes OfferType { get; set; }
+
+        /// <summary>
+        /// Indica si la oferta está activa y visible
+        /// </summary>
+        public bool Active { get; set; }
     }
 }

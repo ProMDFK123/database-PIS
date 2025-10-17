@@ -5,8 +5,8 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Interfaces
     public interface IJobApplicationRepository
     {
         Task<JobApplication> AddAsync(JobApplication application);
-        Task<JobApplication?> GetByStudentAndOfferAsync(string studentId, int offerId);
-        Task<IEnumerable<JobApplication>> GetByStudentIdAsync(string studentId);
+        Task<JobApplication?> GetByStudentAndOfferAsync(int studentId, int offerId);
+        Task<IEnumerable<JobApplication>> GetByStudentIdAsync(int studentId);
         Task<IEnumerable<JobApplication>> GetByOfferIdAsync(int offerId);
         Task<bool> UpdateAsync(JobApplication application);
     }

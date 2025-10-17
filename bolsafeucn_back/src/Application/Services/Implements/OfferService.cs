@@ -1,36 +1,40 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using bolsafeucn_back.src.Application.DTOs;
+using bolsafeucn_back.src.Application.DTOs.OfferDTOs;
 using bolsafeucn_back.src.Application.Services.Interfaces;
-using bolsafeucn_back.src.Domain.Models;
-using bolsafeucn_back.src.Infrastructure.Data;
-using Microsoft.EntityFrameworkCore;
+using bolsafeucn_back.src.Infrastructure.Repositories.Interfaces;
+using Mapster;
 
-namespace bolsafeucn_back.src.Application.Services.Implements
+namespace bolsafeucn_back.src.Application.Services.Implements;
+
+public class OfferService : IOfferService
 {
-    public class OfferService : IOfferService
+    private readonly IOfferRepository _offerRepository;
+    private readonly ILogger<OfferService> _logger;
+
+    public OfferService(IOfferRepository offerRepository, ILogger<OfferService> logger)
     {
-        private readonly AppDbContext _context;
+        _offerRepository = offerRepository;
+        _logger = logger;
+    }
 
-        public OfferService(AppDbContext context)
+    public async Task<IEnumerable<OfferSummaryDto>> GetActiveOffersAsync()
+    {
+        _logger.LogInformation("Obteniendo todas las ofertas activas");
+        var offers = await _offerRepository.GetAllActiveAsync();
+        var offersList = offers.ToList();
+        _logger.LogInformation("Se encontraron {Count} ofertas activas", offersList.Count);
+        return offersList.Adapt<IEnumerable<OfferSummaryDto>>();
+    }
+
+    public async Task<OfferDetailDto?> GetOfferDetailsAsync(int offerId)
+    {
+        _logger.LogInformation("Obteniendo detalles de la oferta ID: {OfferId}", offerId);
+        var offer = await _offerRepository.GetByIdAsync(offerId);
+        if (offer == null)
         {
-            _context = context;
+            _logger.LogWarning("Oferta con ID {OfferId} no encontrada", offerId);
+            throw new KeyNotFoundException($"Offer with id {offerId} not found");
         }
-
-        public async Task<OfferDetailsDto?> GetOfferDetailsAsync(int id)
-        {
-            var offer = await _context.Offers.FirstOrDefaultAsync(o => o.Id == id);
-            if (offer == null) return null;
-
-            return new OfferDetailsDto
-            {
-                Id = offer.Id,
-                Titulo = offer.Titulo,
-                Descripcion = offer.Descripcion,
-                Activa = offer.Activa
-            };
-        }
+        _logger.LogInformation("Detalles de oferta ID: {OfferId} obtenidos exitosamente", offerId);
+        return offer.Adapt<OfferDetailDto>();
     }
 }

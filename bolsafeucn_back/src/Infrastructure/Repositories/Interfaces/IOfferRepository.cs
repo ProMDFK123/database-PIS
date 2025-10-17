@@ -1,12 +1,17 @@
 using bolsafeucn_back.src.Domain.Models;
 
-namespace bolsafeucn_back.src.Infrastructure.Repositories.Interfaces
+namespace bolsafeucn_back.src.Infrastructure.Repositories.Interfaces;
+
+public interface IOfferRepository
 {
-    public interface IOfferRepository
-    {
-        Task<Offer?> GetByIdAsync(int id);
-        Task<IEnumerable<Offer>> GetAllActiveAsync();
-        Task<Offer> AddAsync(Offer offer);
-        Task<bool> UpdateAsync(Offer offer);
-    }
+    // Métodos de consulta
+    Task<Offer?> GetByIdAsync(int offerId);
+    Task<Offer?> GetOfferByIdAsync(int id);
+    Task<IEnumerable<Offer>> GetAllActiveAsync();
+    Task<IEnumerable<Offer>> GetAllOffersAsync();
+
+    // Métodos de escritura
+    Task<Offer> CreateOfferAsync(Offer offer);
+    Task<bool> UpdateOfferAsync(Offer offer);
+    Task<bool> DeleteOfferAsync(int id);
 }

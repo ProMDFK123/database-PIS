@@ -1,7 +1,7 @@
-using Serilog;
 using System.Security;
 using System.Text.Json;
 using bolsafeucn_back.src.Application.DTOs.BaseResponse;
+using Serilog;
 
 namespace bolsafeucn_back.src.API.Middlewares.ErrorHandlingMiddleware;
 
@@ -22,6 +22,11 @@ public class ErrorHandlingMiddleware(RequestDelegate next)
             await _next(context);
             if (context.Response.StatusCode == StatusCodes.Status401Unauthorized)
             {
+                Log.Warning(
+                    "Acceso no autorizado a: {Path} - IP: {IP}",
+                    context.Request.Path,
+                    context.Connection.RemoteIpAddress
+                );
                 context.Response.ContentType = "application/json";
                 var result = System.Text.Json.JsonSerializer.Serialize(
                     new
@@ -43,7 +48,14 @@ public class ErrorHandlingMiddleware(RequestDelegate next)
             // Creamos un objeto ProblemDetails para la respuesta
             ErrorDetail error = new ErrorDetail(title, ex.Message);
 
-            Log.Error(ex, "Excepción no controlada. Trace ID: {TraceId}", traceId);
+            Log.Error(
+                ex,
+                "Excepción no controlada. Trace ID: {TraceId}, Path: {Path}, Method: {Method}, IP: {IP}",
+                traceId,
+                context.Request.Path,
+                context.Request.Method,
+                context.Connection.RemoteIpAddress
+            );
 
             // Configuramos la respuesta HTTP como JSON
             context.Response.ContentType = "application/json";

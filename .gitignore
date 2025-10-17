@@ -4,6 +4,7 @@ bin/
 obj/
 [Bb]uild/
 [Ll]og/
+logs/
 
 # Archivos generados por usuario
 *.user

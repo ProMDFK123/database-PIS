@@ -3,7 +3,6 @@ using bolsafeucn_back.src.Infrastructure.Data;
 using bolsafeucn_back.src.Infrastructure.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-
 namespace bolsafeucn_back.src.Infrastructure.Repositories.Implements
 {
     public class JobApplicationRepository : IJobApplicationRepository
@@ -22,27 +21,28 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Implements
             return application;
         }
 
-        public async Task<JobApplication?> GetByStudentAndOfferAsync(string studentId, int offerId)
+        public async Task<JobApplication?> GetByStudentAndOfferAsync(int studentId, int offerId)
         {
-            return await _context.JobApplications
-                .Include(ja => ja.Estudiante)
-                .Include(ja => ja.OfertaLaboral)
-                .FirstOrDefaultAsync(ja => ja.EstudianteId == studentId && ja.OfertaLaboralId == offerId);
+            return await _context
+                .JobApplications.Include(ja => ja.Student)
+                .Include(ja => ja.JobOffer)
+                .FirstOrDefaultAsync(ja => ja.StudentId == studentId && ja.JobOfferId == offerId);
         }
 
-        public async Task<IEnumerable<JobApplication>> GetByStudentIdAsync(string studentId)
+        public async Task<IEnumerable<JobApplication>> GetByStudentIdAsync(int studentId)
         {
-            return await _context.JobApplications
-                .Include(ja => ja.OfertaLaboral)
-                .Where(ja => ja.EstudianteId == studentId)
+            return await _context
+                .JobApplications.Include(ja => ja.JobOffer)
+                .Include(ja => ja.Student)
+                .Where(ja => ja.StudentId == studentId)
                 .ToListAsync();
         }
 
         public async Task<IEnumerable<JobApplication>> GetByOfferIdAsync(int offerId)
         {
-            return await _context.JobApplications
-                .Include(ja => ja.Estudiante)
-                .Where(ja => ja.OfertaLaboralId == offerId)
+            return await _context
+                .JobApplications.Include(ja => ja.Student)
+                .Where(ja => ja.JobOfferId == offerId)
                 .ToListAsync();
         }
 

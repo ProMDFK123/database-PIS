@@ -9,19 +9,23 @@ namespace bolsafeucn_back.src.Application.Services.Implements
     {
         private readonly IJobApplicationRepository _jobApplicationRepository;
         private readonly IOfferRepository _offerRepository;
-        private readonly IUsuarioRepository _usuarioRepository;
+        private readonly IUserRepository _userRepository;
 
         public JobApplicationService(
             IJobApplicationRepository jobApplicationRepository,
             IOfferRepository offerRepository,
-            IUsuarioRepository usuarioRepository)
+            IUserRepository userRepository
+        )
         {
             _jobApplicationRepository = jobApplicationRepository;
             _offerRepository = offerRepository;
-            _usuarioRepository = usuarioRepository;
+            _userRepository = userRepository;
         }
 
-        public async Task<JobApplicationResponseDto> CreateApplicationAsync(string studentId, CreateJobApplicationDto dto)
+        public async Task<JobApplicationResponseDto> CreateApplicationAsync(
+            int studentId,
+            CreateJobApplicationDto dto
+        )
         {
             // Validar elegibilidad del estudiante
             if (!await ValidateStudentEligibilityAsync(studentId))
@@ -30,22 +34,25 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             }
 
             // Verificar que la oferta existe y está activa
-            var offer = await _offerRepository.GetByIdAsync(dto.OfertaLaboralId);
-            if (offer == null || !offer.Activa)
+            var offer = await _offerRepository.GetByIdAsync(dto.JobOfferId);
+            if (offer == null || !offer.IsActive)
             {
                 throw new KeyNotFoundException("La oferta no existe o no está activa");
             }
 
             // Verificar que no haya postulado anteriormente
-            var existingApplication = await _jobApplicationRepository.GetByStudentAndOfferAsync(studentId, dto.OfertaLaboralId);
+            var existingApplication = await _jobApplicationRepository.GetByStudentAndOfferAsync(
+                studentId,
+                dto.JobOfferId
+            );
             if (existingApplication != null)
             {
                 throw new InvalidOperationException("Ya has postulado a esta oferta");
             }
 
             // Obtener datos del estudiante
-            var student = await _usuarioRepository.GetByIdAsync(int.Parse(studentId));
-            if (student == null || student.Estudiante == null)
+            var student = await _userRepository.GetByIdAsync(studentId);
+            if (student == null || student.Student == null)
             {
                 throw new KeyNotFoundException("Estudiante no encontrado");
             }
@@ -53,12 +60,12 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             // Crear la postulación
             var jobApplication = new JobApplication
             {
-                EstudianteId = studentId,
-                Estudiante = student,
-                OfertaLaboralId = dto.OfertaLaboralId,
-                OfertaLaboral = offer,
-                Estado = "Pendiente",
-                FechaPostulacion = DateTime.UtcNow
+                StudentId = studentId,
+                Student = student,
+                JobOfferId = dto.JobOfferId,
+                JobOffer = offer,
+                Status = "Pendiente",
+                ApplicationDate = DateTime.UtcNow,
             };
 
             var createdApplication = await _jobApplicationRepository.AddAsync(jobApplication);
@@ -66,50 +73,52 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             return new JobApplicationResponseDto
             {
                 Id = createdApplication.Id,
-                EstudianteNombre = $"{student.Estudiante.Nombre} {student.Estudiante.Apellido}",
-                EstudianteCorreo = student.Correo,
-                OfertaTitulo = offer.Titulo,
-                Estado = createdApplication.Estado,
-                FechaPostulacion = createdApplication.FechaPostulacion,
-                CurriculumVitae = student.Estudiante.CurriculumVitae,
-                CartaMotivacional = dto.CartaMotivacional ?? student.Estudiante.CartaMotivacional
+                StudentName = $"{student.Student.Name} {student.Student.LastName}",
+                StudentEmail = student.Email!,
+                OfferTitle = offer.Title,
+                Status = createdApplication.Status,
+                ApplicationDate = createdApplication.ApplicationDate,
+                CurriculumVitae = student.Student.CurriculumVitae,
+                MotivationLetter = dto.MotivationLetter ?? student.Student.MotivationLetter,
             };
         }
 
-        public async Task<IEnumerable<JobApplicationResponseDto>> GetStudentApplicationsAsync(string studentId)
+        public async Task<IEnumerable<JobApplicationResponseDto>> GetStudentApplicationsAsync(
+            int studentId
+        )
         {
             var applications = await _jobApplicationRepository.GetByStudentIdAsync(studentId);
-            
+
             return applications.Select(app => new JobApplicationResponseDto
             {
                 Id = app.Id,
-                EstudianteNombre = $"{app.Estudiante.Estudiante?.Nombre} {app.Estudiante.Estudiante?.Apellido}",
-                EstudianteCorreo = app.Estudiante.Correo,
-                OfertaTitulo = app.OfertaLaboral.Titulo,
-                Estado = app.Estado,
-                FechaPostulacion = app.FechaPostulacion,
-                CurriculumVitae = app.Estudiante.Estudiante?.CurriculumVitae,
-                CartaMotivacional = app.Estudiante.Estudiante?.CartaMotivacional
+                StudentName = $"{app.Student.Student?.Name} {app.Student.Student?.LastName}",
+                StudentEmail = app.Student.Email!,
+                OfferTitle = app.JobOffer.Title,
+                Status = app.Status,
+                ApplicationDate = app.ApplicationDate,
+                CurriculumVitae = app.Student.Student?.CurriculumVitae,
+                MotivationLetter = app.Student.Student?.MotivationLetter,
             });
         }
 
-        public async Task<bool> ValidateStudentEligibilityAsync(string studentId)
+        public async Task<bool> ValidateStudentEligibilityAsync(int studentId)
         {
-            var student = await _usuarioRepository.GetByIdAsync(int.Parse(studentId));
-            
-            if (student == null || student.TipoUsuario != UserType.Student)
+            var student = await _userRepository.GetByIdAsync(studentId);
+
+            if (student == null || student.UserType != UserType.Estudiante)
                 return false;
 
             // Verificar que tenga correo institucional
-            if (!student.Correo.EndsWith("@alumnos.ucn.cl"))
+            if (!student.Email!.EndsWith("@alumnos.ucn.cl"))
                 return false;
 
             // Verificar que no esté bloqueado
-            if (student.Bloqueado)
+            if (student.Banned)
                 return false;
 
             // Verificar que tenga CV
-            if (student.Estudiante == null || string.IsNullOrEmpty(student.Estudiante.CurriculumVitae))
+            if (student.Student == null || string.IsNullOrEmpty(student.Student.CurriculumVitae))
                 return false;
 
             return true;

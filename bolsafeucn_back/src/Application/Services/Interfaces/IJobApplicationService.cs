@@ -4,8 +4,11 @@ namespace bolsafeucn_back.src.Application.Services.Interfaces
 {
     public interface IJobApplicationService
     {
-        Task<JobApplicationResponseDto> CreateApplicationAsync(string studentId, CreateJobApplicationDto dto);
-        Task<IEnumerable<JobApplicationResponseDto>> GetStudentApplicationsAsync(string studentId);
-        Task<bool> ValidateStudentEligibilityAsync(string studentId);
+        Task<JobApplicationResponseDto> CreateApplicationAsync(
+            int studentId,
+            CreateJobApplicationDto dto
+        );
+        Task<IEnumerable<JobApplicationResponseDto>> GetStudentApplicationsAsync(int studentId);
+        Task<bool> ValidateStudentEligibilityAsync(int studentId);
     }
 }

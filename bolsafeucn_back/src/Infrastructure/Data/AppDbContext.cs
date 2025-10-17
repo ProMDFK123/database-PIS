@@ -1,63 +1,94 @@
 using bolsafeucn_back.src.Domain.Models;
-using bolsafeucn.src.Domain.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace bolsafeucn_back.src.Infrastructure.Data
 {
-    public class AppDbContext : IdentityDbContext<ApplicationUser, Role, int>
+    /// <summary>
+    /// Contexto de base de datos principal de la aplicación
+    /// Hereda de IdentityDbContext para incluir las funcionalidades de autenticación
+    /// </summary>
+    public class AppDbContext : IdentityDbContext<GeneralUser, Role, int>
     {
         public AppDbContext(DbContextOptions<AppDbContext> options)
             : base(options) { }
-        public DbSet<Offer> Offers { get; set; } // Nota: el nombre debe ser plural (Offers)
 
-        public DbSet<GeneralUser> Usuarios { get; set; }
-        public DbSet<Disability> Discapacidades { get; set; }
+        // DbSets - Representan las tablas en la base de datos
         public DbSet<Image> Images { get; set; }
-        public DbSet<Student> Estudiantes { get; set; }
-        public DbSet<Company> Empresas { get; set; }
-        public DbSet<Individual> Particulares { get; set; }
+        public DbSet<Student> Students { get; set; }
+        public DbSet<Company> Companies { get; set; }
+        public DbSet<Individual> Individuals { get; set; }
         public DbSet<Admin> Admins { get; set; }
+        public DbSet<VerificationCode> VerificationCodes { get; set; }
+        public DbSet<Publication> Publications { get; set; }
+        public DbSet<Offer> Offers { get; set; }
         public DbSet<JobApplication> JobApplications { get; set; }
 
-        public object Offer { get; internal set; }
+        // public DbSet<Review> Reviews { get; set; } // Desactivado temporalmente
 
-        //public DbSet<Offer> Ofertas { get; set; }
-        //public DbSet<JobApplication> Postulaciones { get; set; }
-        //public DbSet<Review> Evaluaciones { get; set; }
-
+        /// <summary>
+        /// Configura las relaciones entre entidades y otras configuraciones de EF Core
+        /// </summary>
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
-            builder
-                .Entity<GeneralUser>()
-                .HasOne(u => u.Usuario)
-                .WithOne(u => u.GeneralUser)
-                .HasForeignKey<GeneralUser>(u => u.IdUsuario)
-                .OnDelete(DeleteBehavior.Cascade);
+
+            // Relaciones uno a uno entre GeneralUser y tipos específicos de usuario
+
+            // Relación Student - Un usuario puede ser un estudiante
             builder
                 .Entity<Student>()
-                .HasOne(s => s.UsuarioGenerico)
-                .WithOne()
-                .HasForeignKey<Student>(s => s.UsuarioGenericoId)
+                .HasOne(s => s.GeneralUser)
+                .WithOne(gu => gu.Student)
+                .HasForeignKey<Student>(s => s.GeneralUserId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // Relación Company - Un usuario puede ser una empresa
             builder
                 .Entity<Company>()
-                .HasOne(c => c.UsuarioGenerico)
-                .WithOne()
-                .HasForeignKey<Company>(c => c.UsuarioGenericoId)
+                .HasOne(c => c.GeneralUser)
+                .WithOne(gu => gu.Company)
+                .HasForeignKey<Company>(c => c.GeneralUserId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // Relación Admin - Un usuario puede ser un administrador
             builder
                 .Entity<Admin>()
-                .HasOne(a => a.UsuarioGenerico)
-                .WithOne()
-                .HasForeignKey<Admin>(a => a.UsuarioGenericoId)
+                .HasOne(a => a.GeneralUser)
+                .WithOne(gu => gu.Admin)
+                .HasForeignKey<Admin>(a => a.GeneralUserId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // Relación Individual - Un usuario puede ser un particular
             builder
                 .Entity<Individual>()
-                .HasOne(i => i.UsuarioGenerico)
-                .WithOne()
-                .HasForeignKey<Individual>(i => i.UsuarioGenericoId)
+                .HasOne(i => i.GeneralUser)
+                .WithOne(gu => gu.Individual)
+                .HasForeignKey<Individual>(i => i.GeneralUserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Relaciones de JobApplication (Postulación a oferta)
+            // Un estudiante puede hacer muchas postulaciones
+            builder
+                .Entity<JobApplication>()
+                .HasOne(ja => ja.Student)
+                .WithMany()
+                .HasForeignKey(ja => ja.StudentId);
+
+            // Una oferta puede tener muchas postulaciones
+            builder
+                .Entity<JobApplication>()
+                .HasOne(ja => ja.JobOffer)
+                .WithMany()
+                .HasForeignKey(ja => ja.JobOfferId);
+
+            // Relaciones de Publication (clase base para ofertas y compra/venta)
+            // Un usuario puede crear muchas publicaciones
+            builder
+                .Entity<Publication>()
+                .HasOne(p => p.User)
+                .WithMany(u => u.Publications)
+                .HasForeignKey(p => p.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }
