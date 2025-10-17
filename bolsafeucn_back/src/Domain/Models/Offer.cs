@@ -7,11 +7,10 @@ namespace bolsafeucn_back.src.Domain.Models
     {
         Trabajo,
         Voluntariado,
-        CompraVenta,
     }
 
     /// <summary>
-    /// Representa una oferta laboral, voluntariado o compra/venta publicada en el sistema
+    /// Representa una oferta laboral o voluntariado publicada en el sistema
     /// </summary>
     public class Offer : Publication
     {
@@ -26,18 +25,28 @@ namespace bolsafeucn_back.src.Domain.Models
         public DateTime DeadlineDate { get; set; }
 
         /// <summary>
-        /// Remuneración ofrecida (en pesos chilenos)
+        /// Remuneración ofrecida (en pesos chilenos). 0 para voluntariados
         /// </summary>
         public required int Remuneration { get; set; }
 
         /// <summary>
-        /// Tipo de oferta (Trabajo, Voluntariado, CompraVenta)
+        /// Tipo de oferta (Trabajo, Voluntariado)
         /// </summary>
         public required OfferTypes OfferType { get; set; }
 
         /// <summary>
-        /// Indica si la oferta está activa y visible
+        /// Ubicación del trabajo (ciudad, región, remoto, etc.)
         /// </summary>
-        public bool Active { get; set; }
+        public string? Location { get; set; }
+
+        /// <summary>
+        /// Requisitos específicos para la oferta
+        /// </summary>
+        public string? Requirements { get; set; }
+
+        /// <summary>
+        /// Información de contacto (email o teléfono)
+        /// </summary>
+        public string? ContactInfo { get; set; }
     }
 }

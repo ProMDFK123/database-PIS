@@ -1,4 +1,4 @@
-using bolsafeucn_back.src.Application.DTOs;
+using bolsafeucn_back.src.Application.DTOs.JobAplicationDTO;
 using bolsafeucn_back.src.Application.Services.Interfaces;
 using bolsafeucn_back.src.Domain.Models;
 using bolsafeucn_back.src.Infrastructure.Repositories.Interfaces;
@@ -38,6 +38,20 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             if (offer == null || !offer.IsActive)
             {
                 throw new KeyNotFoundException("La oferta no existe o no está activa");
+            }
+
+            // Validar que la fecha límite no haya expirado
+            if (offer.DeadlineDate < DateTime.UtcNow)
+            {
+                throw new InvalidOperationException(
+                    "La fecha límite para postular a esta oferta ha expirado"
+                );
+            }
+
+            // Validar que la oferta no haya finalizado
+            if (offer.EndDate < DateTime.UtcNow)
+            {
+                throw new InvalidOperationException("Esta oferta ha finalizado");
             }
 
             // Verificar que no haya postulado anteriormente
@@ -100,6 +114,83 @@ namespace bolsafeucn_back.src.Application.Services.Implements
                 CurriculumVitae = app.Student.Student?.CurriculumVitae,
                 MotivationLetter = app.Student.Student?.MotivationLetter,
             });
+        }
+
+        public async Task<IEnumerable<JobApplicationResponseDto>> GetApplicationsByOfferIdAsync(
+            int offerId
+        )
+        {
+            var applications = await _jobApplicationRepository.GetByOfferIdAsync(offerId);
+
+            return applications.Select(app => new JobApplicationResponseDto
+            {
+                Id = app.Id,
+                StudentName = $"{app.Student.Student?.Name} {app.Student.Student?.LastName}",
+                StudentEmail = app.Student.Email!,
+                OfferTitle = app.JobOffer.Title,
+                Status = app.Status,
+                ApplicationDate = app.ApplicationDate,
+                CurriculumVitae = app.Student.Student?.CurriculumVitae,
+                MotivationLetter = app.Student.Student?.MotivationLetter,
+            });
+        }
+
+        public async Task<IEnumerable<JobApplicationResponseDto>> GetApplicationsByCompanyIdAsync(
+            int companyId
+        )
+        {
+            // Obtener todas las ofertas de la empresa
+            var companyOffers = await _offerRepository.GetOffersByUserIdAsync(companyId);
+            var offerIds = companyOffers.Select(o => o.Id).ToList();
+
+            // Obtener todas las postulaciones de esas ofertas
+            var allApplications = new List<JobApplicationResponseDto>();
+
+            foreach (var offerId in offerIds)
+            {
+                var applications = await GetApplicationsByOfferIdAsync(offerId);
+                allApplications.AddRange(applications);
+            }
+
+            return allApplications.OrderByDescending(a => a.ApplicationDate);
+        }
+
+        public async Task<bool> UpdateApplicationStatusAsync(
+            int applicationId,
+            string newStatus,
+            int companyId
+        )
+        {
+            // Validar que el estado sea válido
+            var validStatuses = new[] { "Pendiente", "Aceptado", "Rechazado" };
+            if (!validStatuses.Contains(newStatus))
+            {
+                throw new ArgumentException(
+                    $"Estado inválido. Debe ser uno de: {string.Join(", ", validStatuses)}"
+                );
+            }
+
+            // Obtener la postulación
+            var application = await _jobApplicationRepository.GetByIdAsync(applicationId);
+            if (application == null)
+            {
+                throw new KeyNotFoundException("Postulación no encontrada");
+            }
+
+            // Verificar que la oferta pertenece a la empresa
+            var offer = await _offerRepository.GetByIdAsync(application.JobOfferId);
+            if (offer == null || offer.UserId != companyId)
+            {
+                throw new UnauthorizedAccessException(
+                    "No tienes permiso para modificar esta postulación"
+                );
+            }
+
+            // Actualizar el estado
+            application.Status = newStatus;
+            await _jobApplicationRepository.UpdateAsync(application);
+
+            return true;
         }
 
         public async Task<bool> ValidateStudentEligibilityAsync(int studentId)

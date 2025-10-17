@@ -21,6 +21,15 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Implements
             return application;
         }
 
+        public async Task<JobApplication?> GetByIdAsync(int applicationId)
+        {
+            return await _context
+                .JobApplications.Include(ja => ja.Student)
+                .ThenInclude(s => s.Student)
+                .Include(ja => ja.JobOffer)
+                .FirstOrDefaultAsync(ja => ja.Id == applicationId);
+        }
+
         public async Task<JobApplication?> GetByStudentAndOfferAsync(int studentId, int offerId)
         {
             return await _context
@@ -34,7 +43,9 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Implements
             return await _context
                 .JobApplications.Include(ja => ja.JobOffer)
                 .Include(ja => ja.Student)
+                .ThenInclude(s => s.Student)
                 .Where(ja => ja.StudentId == studentId)
+                .OrderByDescending(ja => ja.ApplicationDate)
                 .ToListAsync();
         }
 
@@ -42,7 +53,10 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Implements
         {
             return await _context
                 .JobApplications.Include(ja => ja.Student)
+                .ThenInclude(s => s.Student)
+                .Include(ja => ja.JobOffer)
                 .Where(ja => ja.JobOfferId == offerId)
+                .OrderByDescending(ja => ja.ApplicationDate)
                 .ToListAsync();
         }
 

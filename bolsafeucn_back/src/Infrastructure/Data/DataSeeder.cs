@@ -187,7 +187,9 @@ namespace bolsafeucn_back.src.Application.Infrastructure.Data
                     DeadlineDate = DateTime.UtcNow.AddDays(faker.Random.Int(5, 9)),
                     Remuneration = faker.Random.Int(500, 2000),
                     OfferType = faker.PickRandom<OfferTypes>(),
-                    Active = true,
+                    Location = faker.Address.City(),
+                    Requirements = faker.Lorem.Sentence(),
+                    ContactInfo = faker.Internet.Email(),
                 };
                 context.Offers.Add(offer);
             }
