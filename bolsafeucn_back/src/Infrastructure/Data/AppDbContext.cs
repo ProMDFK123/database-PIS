@@ -22,6 +22,7 @@ namespace bolsafeucn_back.src.Infrastructure.Data
         public DbSet<VerificationCode> VerificationCodes { get; set; }
         public DbSet<Publication> Publications { get; set; }
         public DbSet<Offer> Offers { get; set; }
+        public DbSet<BuySell> BuySells { get; set; }
         public DbSet<JobApplication> JobApplications { get; set; }
 
         // public DbSet<Review> Reviews { get; set; } // Desactivado temporalmente

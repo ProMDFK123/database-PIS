@@ -6,7 +6,6 @@ namespace bolsafeucn_back.src.Domain.Models
     public enum Types
     {
         Offer, // Oferta laboral o voluntariado
-        Volunteer, // Voluntariado
         BuySell, // Compra/Venta
     }
 
@@ -44,7 +43,7 @@ namespace bolsafeucn_back.src.Domain.Models
         /// <summary>
         /// Fecha y hora de publicación (UTC)
         /// </summary>
-        public DateTime PublicationDate { get; set; } = DateTime.Now;
+        public DateTime PublicationDate { get; set; } = DateTime.UtcNow;
 
         /// <summary>
         /// Colección de imágenes asociadas a la publicación
@@ -52,7 +51,7 @@ namespace bolsafeucn_back.src.Domain.Models
         public ICollection<Image> Images { get; set; } = new List<Image>();
 
         /// <summary>
-        /// Tipo de publicación (Offer, Volunteer, BuySell)
+        /// Tipo de publicación (Offer, BuySell)
         /// </summary>
         public required Types Type { get; set; }
 

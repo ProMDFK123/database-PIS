@@ -1,0 +1,20 @@
+using bolsafeucn_back.src.Application.DTOs.PublicationDTO;
+
+namespace bolsafeucn_back.src.Application.Services.Interfaces
+{
+    /// <summary>
+    /// Interfaz para el servicio de gestión de publicaciones de compra/venta
+    /// </summary>
+    public interface IBuySellService
+    {
+        /// <summary>
+        /// Obtiene todas las publicaciones de compra/venta activas
+        /// </summary>
+        Task<IEnumerable<BuySellSummaryDto>> GetActiveBuySellsAsync();
+
+        /// <summary>
+        /// Obtiene los detalles de una publicación de compra/venta específica
+        /// </summary>
+        Task<BuySellDetailDto?> GetBuySellDetailsAsync(int buySellId);
+    }
+}

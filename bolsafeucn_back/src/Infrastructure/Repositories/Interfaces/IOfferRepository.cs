@@ -9,6 +9,7 @@ public interface IOfferRepository
     Task<Offer?> GetOfferByIdAsync(int id);
     Task<IEnumerable<Offer>> GetAllActiveAsync();
     Task<IEnumerable<Offer>> GetAllOffersAsync();
+    Task<IEnumerable<Offer>> GetOffersByUserIdAsync(int userId);
 
     // Métodos de escritura
     Task<Offer> CreateOfferAsync(Offer offer);

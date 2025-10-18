@@ -1,8 +1,9 @@
-using bolsafeucn_back.src.Application.DTO.BaseResponse;
-using bolsafeucn_back.src.Application.DTO.PublicationDTO;
+using bolsafeucn_back.src.Application.DTOs.BaseResponse;
+using bolsafeucn_back.src.Application.DTOs.PublicationDTO;
 using bolsafeucn_back.src.Application.Services.Interfaces;
 using bolsafeucn_back.src.Domain.Models;
 using bolsafeucn_back.src.Infrastructure.Repositories.Interfaces;
+using Microsoft.Extensions.Logging;
 
 namespace bolsafeucn_back.src.Application.Services.Implements
 {
@@ -13,14 +14,17 @@ namespace bolsafeucn_back.src.Application.Services.Implements
     {
         private readonly IOfferRepository _offerRepository;
         private readonly IBuySellRepository _buySellRepository;
+        private readonly ILogger<PublicationService> _logger;
 
         public PublicationService(
             IOfferRepository offerRepository,
-            IBuySellRepository buySellRepository
+            IBuySellRepository buySellRepository,
+            ILogger<PublicationService> logger
         )
         {
             _offerRepository = offerRepository;
             _buySellRepository = buySellRepository;
+            _logger = logger;
         }
 
         /// <summary>
@@ -37,25 +41,44 @@ namespace bolsafeucn_back.src.Application.Services.Implements
                 {
                     Title = offerDTO.Title,
                     Description = offerDTO.Description,
-                    PublicationDate = offerDTO.PublicationDate,
-                    EndDate = offerDTO.ExpirationDate,
-                    DeadlineDate = offerDTO.ExpirationDate,
+                    PublicationDate = DateTime.UtcNow,
+                    EndDate = offerDTO.EndDate,
+                    DeadlineDate = offerDTO.DeadlineDate,
                     Remuneration = (int)offerDTO.Remuneration,
-                    OfferType = OfferTypes.Trabajo, // Por defecto, se puede ajustar según la categoría
+                    OfferType = offerDTO.OfferType,
+                    Location = offerDTO.Location,
+                    Requirements = offerDTO.Requirements,
+                    ContactInfo = offerDTO.ContactInfo,
+                    IsCvRequired = offerDTO.IsCvRequired,
                     UserId = currentUser.Id,
                     User = currentUser,
                     Type = Types.Offer,
-                    IsActive = false,
-                    Active = false,
+                    IsActive = true,
                 };
 
-                await _offerRepository.CreateOfferAsync(offer);
+                var createdOffer = await _offerRepository.CreateOfferAsync(offer);
+
+                _logger.LogInformation(
+                    "Oferta creada exitosamente. ID: {OfferId}, Título: {Title}, Usuario: {UserId}",
+                    createdOffer.Id,
+                    createdOffer.Title,
+                    currentUser.Id
+                );
+
+                return new GenericResponse<string>(
+                    "Oferta creada exitosamente",
+                    $"Oferta ID: {createdOffer.Id}"
+                );
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // TODO: Registrar el error en los logs
+                _logger.LogError(
+                    ex,
+                    "Error al crear oferta para el usuario {UserId}",
+                    currentUser.Id
+                );
+                return new GenericResponse<string>($"Error al crear la oferta: {ex.Message}", null);
             }
-            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -76,16 +99,39 @@ namespace bolsafeucn_back.src.Application.Services.Implements
                     User = currentUser,
                     Type = Types.BuySell,
                     Price = buySellDTO.Price,
-                    IsActive = false,
+                    Category = buySellDTO.Category,
+                    Location = buySellDTO.Location,
+                    ContactInfo = buySellDTO.ContactInfo,
+                    PublicationDate = DateTime.UtcNow,
+                    IsActive = true,
                 };
 
-                await _buySellRepository.CreateBuySellAsync(buySell);
+                var createdBuySell = await _buySellRepository.CreateBuySellAsync(buySell);
+
+                _logger.LogInformation(
+                    "Publicación de compra/venta creada exitosamente. ID: {BuySellId}, Título: {Title}, Usuario: {UserId}",
+                    createdBuySell.Id,
+                    createdBuySell.Title,
+                    currentUser.Id
+                );
+
+                return new GenericResponse<string>(
+                    "Publicación de compra/venta creada exitosamente",
+                    $"Publicación ID: {createdBuySell.Id}"
+                );
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // TODO: Registrar el error en los logs
+                _logger.LogError(
+                    ex,
+                    "Error al crear publicación de compra/venta para el usuario {UserId}",
+                    currentUser.Id
+                );
+                return new GenericResponse<string>(
+                    $"Error al crear la publicación de compra/venta: {ex.Message}",
+                    null
+                );
             }
-            throw new NotImplementedException();
         }
     }
 }

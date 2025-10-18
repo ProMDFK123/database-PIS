@@ -136,6 +136,24 @@ public class OfferRepository : IOfferRepository
     }
 
     /// <summary>
+    /// Obtiene todas las ofertas creadas por un usuario específico (empresa/individual)
+    /// </summary>
+    public async Task<IEnumerable<Offer>> GetOffersByUserIdAsync(int userId)
+    {
+        _logger.LogInformation("Consultando ofertas del usuario ID: {UserId}", userId);
+        var offers = await _context
+            .Offers.Include(o => o.User)
+            .ThenInclude(gu => gu.Company)
+            .Include(o => o.User)
+            .ThenInclude(gu => gu.Individual)
+            .Where(o => o.UserId == userId)
+            .AsNoTracking()
+            .ToListAsync();
+        _logger.LogInformation("Usuario ID: {UserId} tiene {Count} ofertas", userId, offers.Count);
+        return offers;
+    }
+
+    /// <summary>
     /// Actualiza una oferta existente
     /// </summary>
     public async Task<bool> UpdateOfferAsync(Offer offer)
