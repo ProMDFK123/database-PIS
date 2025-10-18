@@ -2,12 +2,17 @@ using bolsafeucn_back.src.Application.DTOs.OfferDTOs;
 using bolsafeucn_back.src.Application.Services.Interfaces;
 using bolsafeucn_back.src.Infrastructure.Repositories.Interfaces;
 using Mapster;
+using Microsoft.EntityFrameworkCore;
+using bolsafeucn_back.src.Infrastructure.Data;
+
+
 
 namespace bolsafeucn_back.src.Application.Services.Implements;
 
 public class OfferService : IOfferService
 {
     private readonly IOfferRepository _offerRepository;
+    private readonly AppDbContext _context;
     private readonly ILogger<OfferService> _logger;
 
     public OfferService(IOfferRepository offerRepository, ILogger<OfferService> logger)
@@ -36,5 +41,27 @@ public class OfferService : IOfferService
         }
         _logger.LogInformation("Detalles de oferta ID: {OfferId} obtenidos exitosamente", offerId);
         return offer.Adapt<OfferDetailDto>();
+    }
+
+    public async Task PublishOfferAsync(int id)
+    {
+        var offer = await _context.Offers.FindAsync(id);
+        if (offer == null)
+            throw new KeyNotFoundException("Offer not found.");
+
+        offer.Active = true; // o Published / Active, según tu modelo
+        _context.Offers.Update(offer);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task RejectOfferAsync(int id)
+    {
+        var offer = await _context.Offers.FindAsync(id);
+        if (offer == null)
+            throw new KeyNotFoundException("Offer not found.");
+
+        offer.Active = false;
+        _context.Offers.Update(offer);
+        await _context.SaveChangesAsync();
     }
 }
