@@ -58,6 +58,12 @@ namespace bolsafeucn_back.src.Application.Infrastructure.Data
                     await SeedOffers(context);
                     Log.Information("DataSeeder: Ofertas de prueba creadas exitosamente.");
                 }
+                if (!await context.BuySells.AnyAsync())
+                {
+                    Log.Information("DataSeeder: No hay avisos de compra/venta, creando datos de prueba...");
+                    await SeedBuySells(context);
+                    Log.Information("DataSeeder: Compra/venta de prueba creados.");
+                }
             }
             catch (Exception ex)
             {
@@ -303,42 +309,176 @@ namespace bolsafeucn_back.src.Application.Infrastructure.Data
 
         private static async Task SeedOffers(AppDbContext context)
         {
-            var faker = new Faker("es");
             var offerents = await context
-                .Users.Where(u =>
-                    u.UserType == UserType.Empresa || u.UserType == UserType.Particular
-                )
+                .Users
+                .Where(u => u.UserType == UserType.Empresa || u.UserType == UserType.Particular)
                 .ToListAsync();
 
-            if (offerents.Count == 0)
-                return;
+            if (offerents.Count == 0) return;
 
-            for (int i = 0; i < 10; i++)
+            var now = DateTime.UtcNow;
+
+            // Muestras curadas (todo en castellano y con campos útiles)
+            var samples = new[]
             {
-                var selectedOfferent = faker.PickRandom(offerents);
+                new {
+                    Title = "Apoyo en Feria UCN",
+                    Desc  = "Logística de stands, orientación a asistentes y apoyo en acreditación.",
+                    Rem   = 55000,
+                    Type  = OfferTypes.Trabajo,
+                    Loc   = "Campus Antofagasta",
+                    Req   = "Responsable, trato cordial, disponibilidad el sábado.",
+                    Contact = "feucn@ucn.cl",
+                    IsCv = false,
+                    Deadline = now.AddDays(7),
+                    End      = now.AddDays(10),
+                },
+                new {
+                    Title = "Diseño de flyer (freelance)",
+                    Desc  = "Diseño de pieza gráfica en formato A4 y versión para RRSS.",
+                    Rem   = 40000,
+                    Type  = OfferTypes.Trabajo,
+                    Loc   = "Remoto",
+                    Req   = "Portafolio o muestras previas; entrega en 48h.",
+                    Contact = "deportes@ucn.cl",
+                    IsCv = false,
+                    Deadline = now.AddDays(5),
+                    End      = now.AddDays(7),
+                },
+                new {
+                    Title = "Tutorías de Cálculo I",
+                    Desc  = "Tutorías grupales (máx. 8) dos veces por semana durante 1 mes.",
+                    Rem   = 0,
+                    Type  = OfferTypes.Voluntariado,
+                    Loc   = "Campus Coquimbo",
+                    Req   = "Aprobado Cálculo I/II, ganas de explicar.",
+                    Contact = "centro.estudiantes@ucn.cl",
+                    IsCv = true,
+                    Deadline = now.AddDays(9),
+                    End      = now.AddDays(30),
+                },
+                new {
+                    Title = "Community Manager para evento",
+                    Desc  = "Cobertura en vivo y publicaciones previas del evento (1 semana).",
+                    Rem   = 80000,
+                    Type  = OfferTypes.Trabajo,
+                    Loc   = "Remoto / Híbrido",
+                    Req   = "Manejo de IG y TikTok; redacción básica.",
+                    Contact = "comunicaciones@ucn.cl",
+                    IsCv = true,
+                    Deadline = now.AddDays(6),
+                    End      = now.AddDays(12),
+                },
+                new {
+                    Title = "Asistente de Laboratorio (química)",
+                    Desc  = "Apoyo en preparación de materiales y registro de datos.",
+                    Rem   = 120000,
+                    Type  = OfferTypes.Trabajo,
+                    Loc   = "Campus Antofagasta",
+                    Req   = "Ramos básicos aprobados; EPP al día.",
+                    Contact = "lab.quimica@ucn.cl",
+                    IsCv = true,
+                    Deadline = now.AddDays(10),
+                    End      = now.AddDays(20),
+                },
+                new {
+                    Title = "Mentorías a mechones (Programa Bienestar)",
+                    Desc  = "Acompañamiento y resolución de dudas generales 1 vez por semana.",
+                    Rem   = 0,
+                    Type  = OfferTypes.Voluntariado,
+                    Loc   = "Campus Coquimbo",
+                    Req   = "Segundo año o superior; empatía y responsabilidad.",
+                    Contact = "bienestar@ucn.cl",
+                    IsCv = false,
+                    Deadline = now.AddDays(8),
+                    End      = now.AddDays(40),
+                }
+            };
+
+
+            context.Offers.RemoveRange(context.Offers);
+            await context.SaveChangesAsync();
+
+            int i = 0;
+            foreach (var s in samples)
+            {
+                var owner = offerents[i++ % offerents.Count];
+
                 var offer = new Offer
                 {
-                    // Propiedades heredadas de Publication (clase base)
-                    UserId = selectedOfferent.Id,
-                    User = selectedOfferent,
-                    Title = faker.Lorem.Sentence(3),
-                    Description = faker.Lorem.Paragraph(),
-                    PublicationDate = DateTime.UtcNow,
+                    UserId = owner.Id,
+                    User = owner,
+
+                    Title = s.Title,
+                    Description = s.Desc,
+                    PublicationDate = now.AddDays(-i % 3), // algunas “recientes”
                     Type = Types.Offer,
                     IsActive = true,
 
-                    // Propiedades específicas de Offer
-                    EndDate = DateTime.UtcNow.AddDays(faker.Random.Int(10, 30)),
-                    DeadlineDate = DateTime.UtcNow.AddDays(faker.Random.Int(5, 9)),
-                    Remuneration = faker.Random.Int(500, 2000),
-                    OfferType = faker.PickRandom<OfferTypes>(),
-                    Location = faker.Address.City(),
-                    Requirements = faker.Lorem.Sentence(),
-                    ContactInfo = faker.Internet.Email(),
+                    EndDate = s.End,
+                    DeadlineDate = s.Deadline,
+                    Remuneration = s.Rem,
+                    OfferType = s.Type,
+                    Location = s.Loc,
+                    Requirements = s.Req,
+                    ContactInfo = s.Contact,
+                    IsCvRequired = s.IsCv,
                 };
+
                 context.Offers.Add(offer);
             }
+
             await context.SaveChangesAsync();
+            Log.Information("DataSeeder: Ofertas de ejemplo cargadas ({Count})", samples.Length);
         }
+
+        private static async Task SeedBuySells(AppDbContext context)
+        {
+            var now = DateTime.UtcNow;
+
+            // Buscamos oferentes (empresa o particular) para asociar publicaciones
+            var sellers = await context.Users
+                .Where(u => u.UserType == UserType.Empresa || u.UserType == UserType.Particular)
+                .ToListAsync();
+            if (sellers.Count == 0) return;
+
+            // Muestras curadas (campos útiles y en castellano)
+            var items = new[]
+            {
+                new { Title="Venta libro Cálculo I (Stewart 7ma)",  Desc="En buen estado, pocas marcas.",            Price=12000m, Category="Libros",     Loc="Antofagasta", Contact="ignacio@ucn.cl" },
+                new { Title="Teclado mecánico Redragon K552",       Desc="Switch blue, 1 año de uso.",              Price=18000m, Category="Tecnología", Loc="Coquimbo",    Contact="+56987654321" },
+                new { Title="Bata laboratorio talla M",             Desc="Lavada y desinfectada, casi nueva.",      Price=8000m,  Category="Laboratorio",Loc="Antofagasta", Contact="c.labs@ucn.cl" },
+                new { Title="Calculadora científica Casio fx-82",   Desc="Funciona perfecto, con pilas nuevas.",    Price=9000m,  Category="Accesorios", Loc="Remoto",       Contact="ventas@ucn.cl" },
+                new { Title="Pack cuadernos + destacadores",        Desc="5 cuadernos college + 6 destacadores.",   Price=6000m,  Category="Útiles",     Loc="Coquimbo",    Contact="j.vende@ucn.cl" },
+            };
+
+            int i = 0;
+            foreach (var it in items)
+            {
+                var owner = sellers[i++ % sellers.Count];
+
+                var bs = new BuySell
+                {
+                    UserId         = owner.Id,
+                    User           = owner,
+                    Title          = it.Title,
+                    Description    = it.Desc,
+                    PublicationDate= now.AddDays(-(i%3)),
+                    Type           = Types.BuySell,
+                    IsActive       = true,
+
+                    Price          = it.Price,
+                    Category       = it.Category,
+                    Location       = it.Loc,
+                    ContactInfo    = it.Contact
+                };
+
+                context.BuySells.Add(bs);
+            }
+
+            await context.SaveChangesAsync();
+            Log.Information("DataSeeder: BuySell de ejemplo cargados ({Count})", items.Length);
+        }
+        
     }
 }
