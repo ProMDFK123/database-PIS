@@ -10,14 +10,10 @@ using bolsafeucn_back.src.Infrastructure.Repositories.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Net.Http.Headers;               // <<-- para CORS (HeaderNames)
 using Resend;
 using Serilog;
-using Swashbuckle.AspNetCore.Swagger;
-using Swashbuckle.AspNetCore.SwaggerGen;
-using Swashbuckle.AspNetCore.SwaggerUI;
 
-// Configura Serilog para leer desde appsettings.json.
-// Esto es útil para capturar errores incluso antes de que la aplicación se inicie por completo.
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(
         new ConfigurationBuilder()
@@ -32,7 +28,7 @@ try
 
     var builder = WebApplication.CreateBuilder(args);
 
-    // Añade Serilog al host de la aplicación para que se integre con el sistema de logging de .NET.
+    // Serilog
     builder.Host.UseSerilog(
         (context, configuration) => configuration.ReadFrom.Configuration(context.Configuration)
     );
@@ -41,9 +37,11 @@ try
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
 
-    #region Configuracion de Identity
-    builder
-        .Services.AddIdentity<GeneralUser, Role>(options =>
+    // =========================
+    // 1) Identity
+    // =========================
+    builder.Services
+        .AddIdentity<GeneralUser, Role>(options =>
         {
             options.User.AllowedUserNameCharacters =
                 "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
@@ -57,11 +55,12 @@ try
         .AddRoles<Role>()
         .AddEntityFrameworkStores<AppDbContext>()
         .AddDefaultTokenProviders();
-    #endregion
 
-    #region Configuracion de autenticacion y autorizacion
-    builder
-        .Services.AddAuthentication(options =>
+    // =========================
+    // 2) Auth (JWT)
+    // =========================
+    builder.Services
+        .AddAuthentication(options =>
         {
             options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
             options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -73,22 +72,41 @@ try
             {
                 throw new InvalidOperationException("La clave secreta JWT no está configurada.");
             }
-            options.TokenValidationParameters =
-                new Microsoft.IdentityModel.Tokens.TokenValidationParameters
-                {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(
-                        System.Text.Encoding.UTF8.GetBytes(jwtSecret)
-                    ),
-                    ValidateLifetime = true,
-                    ValidateIssuer = false,
-                    ValidateAudience = false,
-                    ClockSkew = TimeSpan.Zero,
-                };
-        });
-    #endregion
 
-    #region Configuracion de Resend
+            options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(
+                    System.Text.Encoding.UTF8.GetBytes(jwtSecret)
+                ),
+                ValidateLifetime = true,
+                ValidateIssuer = false,
+                ValidateAudience = false,
+                ClockSkew = TimeSpan.Zero,
+            };
+        });
+
+    // =========================
+    // 3) CORS (permitimos el front en 3000)
+    // =========================
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("Frontend", policy =>
+        {
+            policy.WithOrigins(
+                    "http://localhost:3000"      // Next.js dev
+                    // ,"https://localhost:3000"  // agrega si usas https en front
+                    // ,"https://localhost:7129"  // agrega si llamas al backend en https y navegas desde https
+                )
+                .WithHeaders(HeaderNames.ContentType, HeaderNames.Authorization, "Accept")
+                .WithMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
+                .AllowCredentials(); // opcional si luego usas cookies
+        });
+    });
+
+    // =========================
+    // 4) Resend (emails)
+    // =========================
     builder.Services.AddOptions();
     builder.Services.AddHttpClient<ResendClient>();
     builder.Services.Configure<ResendClientOptions>(o =>
@@ -96,40 +114,47 @@ try
         o.ApiToken = builder.Configuration.GetValue<string>("ResendApiKey")!;
     });
     builder.Services.AddTransient<IResend, ResendClient>();
-    #endregion
 
-    #region Configuracion de PostgreSQL
+    // =========================
+    // 5) PostgreSQL
+    // =========================
     builder.Services.AddDbContext<AppDbContext>(options =>
         options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
     );
-    #endregion
 
-    #region Injeccion de dependencias
+    // =========================
+    // 6) DI (repos/services/mappers)
+    // =========================
     builder.Services.AddScoped<StudentMapper>();
     builder.Services.AddScoped<IndividualMapper>();
     builder.Services.AddScoped<CompanyMapper>();
     builder.Services.AddScoped<AdminMapper>();
     builder.Services.AddScoped<OfferMapper>();
+
     builder.Services.AddScoped<IUserRepository, UserRepository>();
     builder.Services.AddScoped<IOfferRepository, OfferRepository>();
+    builder.Services.AddScoped<IBuySellRepository, BuySellRepository>();
+    builder.Services.AddScoped<IVerificationCodeRepository, VerificationCodeRepository>();
+    builder.Services.AddScoped<IJobApplicationRepository, JobApplicationRepository>();
+
     builder.Services.AddScoped<IUserService, UserService>();
     builder.Services.AddScoped<IEmailService, EmailService>();
     builder.Services.AddScoped<ITokenService, TokenService>();
     builder.Services.AddScoped<IOfferService, OfferService>();
-    builder.Services.AddScoped<IVerificationCodeRepository, VerificationCodeRepository>();
-    builder.Services.AddScoped<IJobApplicationRepository, JobApplicationRepository>();
     builder.Services.AddScoped<IJobApplicationService, JobApplicationService>();
     builder.Services.AddScoped<IPublicationService, PublicationService>();
-    builder.Services.AddScoped<IBuySellRepository, BuySellRepository>();
     builder.Services.AddScoped<IBuySellService, BuySellService>();
-    #endregion
 
     var app = builder.Build();
 
-    // Middleware de manejo de errores
+    // =========================
+    // Pipeline
+    // =========================
+
+    // Middleware global de errores (antes de todo)
     app.UseMiddleware<bolsafeucn_back.src.API.Middlewares.ErrorHandlingMiddleware.ErrorHandlingMiddleware>();
 
-    // Esta es la forma correcta de llamar al seeder para evitar el deadlock.
+    // Seed DB + Mapster (al inicio)
     await SeedAndMapDatabase(app);
 
     if (app.Environment.IsDevelopment())
@@ -139,8 +164,16 @@ try
         Log.Information("Swagger UI habilitado en modo desarrollo");
     }
 
-    app.UseHttpsRedirection();
+    // Si te genera líos en local (http->https), puedes comentar mientras desarrollas:
+    // app.UseHttpsRedirection();
+
+    // CORS debe ir ANTES de auth/authorization
+    app.UseCors("Frontend");
+
+    // Muy importante: primero autenticación, luego autorización
+    app.UseAuthentication();
     app.UseAuthorization();
+
     app.MapControllers();
 
     Log.Information("Aplicación iniciada correctamente");
@@ -155,7 +188,9 @@ finally
     Log.CloseAndFlush();
 }
 
-// Método auxiliar para inicializar la base de datos y los mapeos
+// =========================
+// Helpers
+// =========================
 async Task SeedAndMapDatabase(IHost app)
 {
     using var scope = app.Services.CreateScope();
