@@ -1,4 +1,5 @@
 namespace bolsafeucn_back.src.Application.DTOs.OfferDTOs;
+using bolsafeucn_back.src.Domain.Models;
 
 public class OfferSummaryDto
 {
@@ -6,6 +7,14 @@ public class OfferSummaryDto
     public required string Title { get; set; }
     public required string CompanyName { get; set; }
     public string? Location { get; set; }
+
+    public decimal Remuneration { get; set; }
+    public DateTime? DeadlineDate { get; set; }
+    public DateTime PublicationDate { get; set; }
+    public OfferTypes OfferType { get; set; }
+
+    // opcional: si quieres devolver ya formateado el “oferente”
+    public string OwnerName { get; set; } = "UCN";
 }
 
 public class OfferDetailDto
