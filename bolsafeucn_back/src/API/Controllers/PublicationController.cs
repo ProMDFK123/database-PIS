@@ -13,10 +13,11 @@ namespace bolsafeucn_back.src.API.Controllers
     
     public class PublicationController(
         IPublicationService publicationService,
-        IUserRepository userRepository
+        IUserRepository userRepository,
+        IOfferService offerService
     ) : BaseController
     {
-        private readonly IOfferService _OfferService;
+        private readonly IOfferService _OfferService = offerService;
         private readonly IPublicationService _publicationService = publicationService;
         private readonly IUserRepository _userRepository = userRepository;
         [HttpPost("offers")]

@@ -15,10 +15,11 @@ public class OfferService : IOfferService
     private readonly AppDbContext _context;
     private readonly ILogger<OfferService> _logger;
 
-    public OfferService(IOfferRepository offerRepository, ILogger<OfferService> logger)
+    public OfferService(IOfferRepository offerRepository, ILogger<OfferService> logger, AppDbContext context)
     {
         _offerRepository = offerRepository;
         _logger = logger;
+        _context = context;
     }
 
     public async Task<IEnumerable<OfferSummaryDto>> GetActiveOffersAsync()
