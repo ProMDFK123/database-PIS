@@ -1,33 +1,29 @@
 using bolsafeucn_back.src.Domain.Models;
 using bolsafeucn_back.src.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 
 namespace bolsafeucn_back.src.Infrastructure.Repositories.Interfaces
 {
     public class VerificationCodeRepository : IVerificationCodeRepository
     {
         private readonly AppDbContext _context;
-        private readonly ILogger<VerificationCodeRepository> _logger;
 
-        public VerificationCodeRepository(
-            AppDbContext context,
-            ILogger<VerificationCodeRepository> logger
-        )
+        public VerificationCodeRepository(AppDbContext context)
         {
             _context = context;
-            _logger = logger;
         }
 
         public async Task<VerificationCode> CreateCodeAsync(VerificationCode code)
         {
-            _logger.LogInformation(
+            Log.Information(
                 "Creando código de verificación para usuario ID: {UserId}, Tipo: {CodeType}",
                 code.GeneralUserId,
                 code.CodeType
             );
             await _context.VerificationCodes.AddAsync(code);
             await _context.SaveChangesAsync();
-            _logger.LogInformation(
+            Log.Information(
                 "Código de verificación creado exitosamente para usuario ID: {UserId}, Código ID: {CodeId}",
                 code.GeneralUserId,
                 code.Id
@@ -35,9 +31,34 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Interfaces
             return code;
         }
 
+        public async Task<VerificationCode> UpdateCodeAsync(VerificationCode code)
+        {
+            Log.Information(
+                "Actualizando código de verificación ID: {CodeId} para usuario ID: {UserId}",
+                code.Id,
+                code.GeneralUserId
+            );
+            await _context
+                .VerificationCodes.Where(vc => vc.Id == code.Id)
+                .ExecuteUpdateAsync(vc =>
+                    vc.SetProperty(v => v.Code, code.Code)
+                        .SetProperty(v => v.Attempts, code.Attempts)
+                        .SetProperty(v => v.Expiration, code.Expiration)
+                );
+            await _context.SaveChangesAsync();
+            Log.Information(
+                "Código de verificación ID: {CodeId} actualizado exitosamente",
+                code.Id
+            );
+            var newVerificationCode = await _context
+                .VerificationCodes.AsNoTracking()
+                .FirstOrDefaultAsync(vc => vc.Id == code.Id);
+            return newVerificationCode!;
+        }
+
         public async Task<VerificationCode> GetByLatestUserIdAsync(int userId, CodeType codeType)
         {
-            _logger.LogInformation(
+            Log.Information(
                 "Obteniendo último código de verificación para usuario ID: {UserId}, Tipo: {CodeType}",
                 userId,
                 codeType
@@ -51,7 +72,7 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Interfaces
 
             if (verificationCode != null)
             {
-                _logger.LogInformation(
+                Log.Information(
                     "Código de verificación encontrado para usuario ID: {UserId}, Código ID: {CodeId}",
                     userId,
                     verificationCode.Id
@@ -59,7 +80,7 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Interfaces
             }
             else
             {
-                _logger.LogWarning(
+                Log.Warning(
                     "No se encontró código de verificación para usuario ID: {UserId}, Tipo: {CodeType}",
                     userId,
                     codeType
@@ -70,7 +91,7 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Interfaces
 
         public async Task<int> IncreaseAttemptsAsync(int userId, CodeType codeType)
         {
-            _logger.LogInformation(
+            Log.Information(
                 "Incrementando intentos de verificación para usuario ID: {UserId}, Tipo: {CodeType}",
                 userId,
                 codeType
@@ -88,7 +109,7 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Interfaces
                 .OrderByDescending(vc => vc.CreatedAt)
                 .Select(vc => vc.Attempts)
                 .FirstAsync();
-            _logger.LogInformation(
+            Log.Information(
                 "Intentos incrementados para usuario ID: {UserId}, Total intentos: {Attempts}",
                 userId,
                 attempts
@@ -98,7 +119,7 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Interfaces
 
         public async Task<bool> DeleteByUserIdAsync(int userId, CodeType codeType)
         {
-            _logger.LogInformation(
+            Log.Information(
                 "Eliminando códigos de verificación para usuario ID: {UserId}, Tipo: {CodeType}",
                 userId,
                 codeType
@@ -114,14 +135,14 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Interfaces
 
             if (!exists)
             {
-                _logger.LogInformation(
+                Log.Information(
                     "Códigos de verificación eliminados exitosamente para usuario ID: {UserId}",
                     userId
                 );
             }
             else
             {
-                _logger.LogWarning(
+                Log.Warning(
                     "Error al eliminar códigos de verificación para usuario ID: {UserId}",
                     userId
                 );
