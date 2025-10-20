@@ -10,7 +10,7 @@ using bolsafeucn_back.src.Infrastructure.Repositories.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Net.Http.Headers;               // <<-- para CORS (HeaderNames)
+using Microsoft.Net.Http.Headers; // <<-- para CORS (HeaderNames)
 using Resend;
 using Serilog;
 
@@ -40,8 +40,8 @@ try
     // =========================
     // 1) Identity
     // =========================
-    builder.Services
-        .AddIdentity<GeneralUser, Role>(options =>
+    builder
+        .Services.AddIdentity<GeneralUser, Role>(options =>
         {
             options.User.AllowedUserNameCharacters =
                 "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
@@ -59,8 +59,8 @@ try
     // =========================
     // 2) Auth (JWT)
     // =========================
-    builder.Services
-        .AddAuthentication(options =>
+    builder
+        .Services.AddAuthentication(options =>
         {
             options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
             options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -73,17 +73,18 @@ try
                 throw new InvalidOperationException("La clave secreta JWT no está configurada.");
             }
 
-            options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
-            {
-                ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(
-                    System.Text.Encoding.UTF8.GetBytes(jwtSecret)
-                ),
-                ValidateLifetime = true,
-                ValidateIssuer = false,
-                ValidateAudience = false,
-                ClockSkew = TimeSpan.Zero,
-            };
+            options.TokenValidationParameters =
+                new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(
+                        System.Text.Encoding.UTF8.GetBytes(jwtSecret)
+                    ),
+                    ValidateLifetime = true,
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    ClockSkew = TimeSpan.Zero,
+                };
         });
 
     // =========================
@@ -91,17 +92,21 @@ try
     // =========================
     builder.Services.AddCors(options =>
     {
-        options.AddPolicy("Frontend", policy =>
-        {
-            policy.WithOrigins(
-                    "http://localhost:3000"      // Next.js dev
-                                                 // ,"https://localhost:3000"  // agrega si usas https en front
-                                                 // ,"https://localhost:7129"  // agrega si llamas al backend en https y navegas desde https
-                )
-                .WithHeaders(HeaderNames.ContentType, HeaderNames.Authorization, "Accept")
-                .WithMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
-                .AllowCredentials(); // opcional si luego usas cookies
-        });
+        options.AddPolicy(
+            "Frontend",
+            policy =>
+            {
+                policy
+                    .WithOrigins(
+                        "http://localhost:3000" // Next.js dev
+                    // ,"https://localhost:3000"  // agrega si usas https en front
+                    // ,"https://localhost:7129"  // agrega si llamas al backend en https y navegas desde https
+                    )
+                    .WithHeaders(HeaderNames.ContentType, HeaderNames.Authorization, "Accept")
+                    .WithMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
+                    .AllowCredentials(); // opcional si luego usas cookies
+            }
+        );
     });
 
     // =========================
@@ -202,7 +207,6 @@ async Task SeedAndMapDatabase(IHost app)
     MapperExtensions.ConfigureMapster(serviceProvider);
     Log.Information("Seed de base de datos y configuración de mappers completados");
 }
-
 
 //REVIEWS
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
