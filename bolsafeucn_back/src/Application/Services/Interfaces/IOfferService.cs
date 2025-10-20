@@ -6,4 +6,6 @@ public interface IOfferService
 {
     Task<OfferDetailDto?> GetOfferDetailsAsync(int offerId);
     Task<IEnumerable<OfferSummaryDto>> GetActiveOffersAsync();
+    Task PublishOfferAsync(int id); 
+    Task RejectOfferAsync(int id);
 }

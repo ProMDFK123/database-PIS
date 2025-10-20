@@ -3,6 +3,8 @@ using bolsafeucn_back.src.Application.Services.Interfaces;
 using bolsafeucn_back.src.Domain.Models;
 using bolsafeucn_back.src.Infrastructure.Repositories.Interfaces;
 using Mapster;
+using Microsoft.EntityFrameworkCore;
+using bolsafeucn_back.src.Infrastructure.Data;
 
 namespace bolsafeucn_back.src.Application.Services.Implements;
 
@@ -10,11 +12,13 @@ public class OfferService : IOfferService
 {
     private readonly IOfferRepository _offerRepository;
     private readonly ILogger<OfferService> _logger;
+    private readonly AppDbContext _context;
 
-    public OfferService(IOfferRepository offerRepository, ILogger<OfferService> logger)
+    public OfferService(IOfferRepository offerRepository, ILogger<OfferService> logger, AppDbContext context)
     {
         _offerRepository = offerRepository;
         _logger = logger;
+        _context = context;
     }
 
     public async Task<IEnumerable<OfferSummaryDto>> GetActiveOffersAsync()
@@ -94,5 +98,27 @@ public class OfferService : IOfferService
 
         _logger.LogInformation("Detalles de oferta ID: {OfferId} obtenidos exitosamente", offerId);
         return result;
+    }
+
+    public async Task PublishOfferAsync(int id)
+    {
+        var offer = await _context.Offers.FindAsync(id);
+        if (offer == null)
+            throw new KeyNotFoundException("Offer not found.");
+
+        offer.IsActive = true; // o Published / Active, según tu modelo
+        _context.Offers.Update(offer);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task RejectOfferAsync(int id)
+    {
+        var offer = await _context.Offers.FindAsync(id);
+        if (offer == null)
+            throw new KeyNotFoundException("Offer not found.");
+
+        offer.IsActive = false;
+        _context.Offers.Update(offer);
+        await _context.SaveChangesAsync();
     }
 }

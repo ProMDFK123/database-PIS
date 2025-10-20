@@ -7,6 +7,8 @@ using bolsafeucn_back.src.Domain.Models;
 using bolsafeucn_back.src.Infrastructure.Repositories.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using bolsafeucn_back.src.Application.Services.Implements;
+using bolsafeucn_back.src.Application.DTOs.OfferDTOs;
 
 namespace bolsafeucn_back.src.API.Controllers
 {
@@ -130,6 +132,40 @@ namespace bolsafeucn_back.src.API.Controllers
             }
 
             return Ok(response);
+        }
+
+        #endregion
+
+        #region Validar ofertas (admin)
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost("validate/{id}")]
+        public async Task<IActionResult> OfferValidation(int id, [FromBody] OfferValidationDto offerValidationDto)
+        {
+            var offer = await _offerService.GetOfferDetailsAsync(id);
+            if (offer == null)
+                return NotFound("Offer doesn't exist.");
+
+            if (offerValidationDto == null || string.IsNullOrWhiteSpace(offerValidationDto.Accepted))
+                return BadRequest("Field 'Accepted'  is required, use yes or no");
+
+            var decision = offerValidationDto.Accepted.Trim().ToLower();
+
+            if (decision != "yes" && decision != "no")
+                return BadRequest("The 'Accepted' field must be either 'yes' or 'no'.");
+
+            bool isAccepted = decision == "yes";
+
+            if (isAccepted)
+            {
+                await _offerService.PublishOfferAsync(id);
+                return Ok(new { message = $"Offer {id} has been published successfully." });
+            }
+            else
+            {
+                await _offerService.RejectOfferAsync(id);
+                return Ok(new { message = $"Offer {id} was rejected." });
+            }
         }
 
         #endregion
