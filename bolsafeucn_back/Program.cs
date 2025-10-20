@@ -150,6 +150,10 @@ try
     builder.Services.AddScoped<IPublicationService, PublicationService>();
     builder.Services.AddScoped<IBuySellService, BuySellService>();
 
+    //REVIEWS
+    builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
+    builder.Services.AddScoped<IReviewService, ReviewService>();
+
     var app = builder.Build();
 
     // =========================
@@ -207,7 +211,3 @@ async Task SeedAndMapDatabase(IHost app)
     MapperExtensions.ConfigureMapster(serviceProvider);
     Log.Information("Seed de base de datos y configuración de mappers completados");
 }
-
-//REVIEWS
-builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
-builder.Services.AddScoped<IReviewService, ReviewService>();

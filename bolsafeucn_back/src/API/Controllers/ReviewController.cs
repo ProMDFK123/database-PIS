@@ -15,7 +15,6 @@ namespace bolsafeucn_back.src.API.Controllers
             _reviewService = reviewService;
         }
 
-
         [HttpPost]
         public async Task<IActionResult> AddReview([FromBody] ReviewDTO dto)
         {

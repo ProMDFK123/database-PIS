@@ -2,18 +2,18 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Serilog;
-using SkiaSharp;
 using bolsafeucn_back.src.Application.Services.Interfaces;
 using bolsafeucn_back.src.Domain.Models;
 using bolsafeucn_back.src.Infrastructure.Data;
 using bolsafeucn_back.src.Infrastructure.Repositories.Interfaces;
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
+using Serilog;
+using SkiaSharp;
 
 namespace bolsafeucn_back.src.Application.Services.Implements
 {
-    public class FileService :IFileService
+    public class FileService : IFileService
     {
         private readonly IConfiguration _configuration;
         private readonly Cloudinary _cloudinary;
@@ -27,22 +27,69 @@ namespace bolsafeucn_back.src.Application.Services.Implements
         private readonly string _transformationCrop;
         private readonly string _transformationQuality;
         private readonly string _transformationFetchFormat;
+
         public FileService(IConfiguration configuration, IFileRepository fileRepository)
         {
             _configuration = configuration;
             _fileRepository = fileRepository;
-            _cloudName = _configuration["Cloudinary:CloudName"] ?? throw new InvalidOperationException("La configuración de CloudName es obligatoria");
-            _cloudApiKey = _configuration["Cloudinary:ApiKey"] ?? throw new InvalidOperationException("La configuración de ApiKey es obligatoria");
-            _cloudApiSecret = _configuration["Cloudinary:ApiSecret"] ?? throw new InvalidOperationException("La configuración de ApiSecret es obligatoria");
+            _cloudName =
+                _configuration["Cloudinary:CloudName"]
+                ?? throw new InvalidOperationException(
+                    "La configuración de CloudName es obligatoria"
+                );
+            _cloudApiKey =
+                _configuration["Cloudinary:ApiKey"]
+                ?? throw new InvalidOperationException("La configuración de ApiKey es obligatoria");
+            _cloudApiSecret =
+                _configuration["Cloudinary:ApiSecret"]
+                ?? throw new InvalidOperationException(
+                    "La configuración de ApiSecret es obligatoria"
+                );
             Account account = new Account(_cloudName, _cloudApiKey, _cloudApiSecret);
             _cloudinary = new Cloudinary(account);
             _cloudinary.Api.Secure = true; // Aseguramos  que las URLs sean seguras con HTTPS
-            _allowedExtensions = _configuration.GetSection("Products:ImageAllowedExtensions").Get<string[]>() ?? throw new InvalidOperationException("La configuración de las extensiones de las imágenes es obligatoria");
-            _transformationQuality = _configuration["Products:TransformationQuality"] ?? throw new InvalidOperationException("La configuración de la calidad de la transformación es obligatoria");
-            _transformationCrop = _configuration["Products:TransformationCrop"] ?? throw new InvalidOperationException("La configuración del recorte de la transformación es obligatoria");
-            _transformationFetchFormat = _configuration["Products:TransformationFetchFormat"] ?? throw new InvalidOperationException("La configuración del formato de la transformación es obligatoria");
-            if (!int.TryParse(_configuration["Products:ImageMaxSizeInBytes"], out _maxFileSizeInBytes)) { throw new InvalidOperationException("La configuración del tamaño de la imagen es obligatoria"); }
-            if (!int.TryParse(_configuration["Products:TransformationWidth"], out _transformationWidth)) { throw new InvalidOperationException("La configuración del ancho de la transformación es obligatoria"); }
+            _allowedExtensions =
+                _configuration.GetSection("Products:ImageAllowedExtensions").Get<string[]>()
+                ?? throw new InvalidOperationException(
+                    "La configuración de las extensiones de las imágenes es obligatoria"
+                );
+            _transformationQuality =
+                _configuration["Products:TransformationQuality"]
+                ?? throw new InvalidOperationException(
+                    "La configuración de la calidad de la transformación es obligatoria"
+                );
+            _transformationCrop =
+                _configuration["Products:TransformationCrop"]
+                ?? throw new InvalidOperationException(
+                    "La configuración del recorte de la transformación es obligatoria"
+                );
+            _transformationFetchFormat =
+                _configuration["Products:TransformationFetchFormat"]
+                ?? throw new InvalidOperationException(
+                    "La configuración del formato de la transformación es obligatoria"
+                );
+            if (
+                !int.TryParse(
+                    _configuration["Products:ImageMaxSizeInBytes"],
+                    out _maxFileSizeInBytes
+                )
+            )
+            {
+                throw new InvalidOperationException(
+                    "La configuración del tamaño de la imagen es obligatoria"
+                );
+            }
+            if (
+                !int.TryParse(
+                    _configuration["Products:TransformationWidth"],
+                    out _transformationWidth
+                )
+            )
+            {
+                throw new InvalidOperationException(
+                    "La configuración del ancho de la transformación es obligatoria"
+                );
+            }
         }
 
         /// <summary>
@@ -67,8 +114,12 @@ namespace bolsafeucn_back.src.Application.Services.Implements
 
             if (file.Length > _maxFileSizeInBytes)
             {
-                Log.Error($"El archivo {file.FileName} excede el tamaño máximo permitido de {_maxFileSizeInBytes / 1024 / 1024} MB");
-                throw new ArgumentException($"El archivo excede el tamaño máximo permitido de {_maxFileSizeInBytes / 1024 / 1024} MB");
+                Log.Error(
+                    $"El archivo {file.FileName} excede el tamaño máximo permitido de {_maxFileSizeInBytes / 1024 / 1024} MB"
+                );
+                throw new ArgumentException(
+                    $"El archivo excede el tamaño máximo permitido de {_maxFileSizeInBytes / 1024 / 1024} MB"
+                );
             }
 
             var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
@@ -76,7 +127,9 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             if (!_allowedExtensions.Contains(fileExtension))
             {
                 Log.Error($"Extensión de archivo no permitida: {fileExtension}");
-                throw new ArgumentException($"Extensión de archivo no permitida. Permitir: {string.Join(", ", _allowedExtensions)}");
+                throw new ArgumentException(
+                    $"Extensión de archivo no permitida. Permitir: {string.Join(", ", _allowedExtensions)}"
+                );
             }
 
             if (!IsValidImageFile(file))
@@ -92,13 +145,16 @@ namespace bolsafeucn_back.src.Application.Services.Implements
                 Folder = folder,
                 File = new FileDescription(file.FileName, stream),
                 UseFilename = true,
-                UniqueFilename = true
+                UniqueFilename = true,
             };
 
             Log.Information($"Optimizando imagen: {file.FileName} antes de subir a la nube");
             uploadParams.Transformation = new Transformation()
-                .Width(_transformationWidth).Crop(_transformationCrop).Chain()
-                .Quality(_transformationQuality).Chain()
+                .Width(_transformationWidth)
+                .Crop(_transformationCrop)
+                .Chain()
+                .Quality(_transformationQuality)
+                .Chain()
                 .FetchFormat(_transformationFetchFormat);
 
             Log.Information($"Subiendo imagen: {file.FileName} a Cloudinary");
@@ -114,7 +170,7 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             {
                 PublicId = uploadResult.PublicId,
                 Url = uploadResult.SecureUrl.ToString(),
-                PublicationId = publicationId
+                PublicationId = publicationId,
             };
 
             var result = await _fileRepository.CreateAsync(image);
@@ -124,8 +180,12 @@ namespace bolsafeucn_back.src.Application.Services.Implements
                 var deleteResult = await DeleteInCloudinaryAsync(uploadResult.PublicId); // Eliminamos la imagen de Cloudinary si falla la creación de la imagen en la bdd
                 if (!deleteResult)
                 {
-                    Log.Error($"Error al eliminar la imagen de Cloudinary después de fallar la creación en la base de datos: {uploadResult.PublicId}");
-                    throw new Exception("Error al eliminar la imagen de Cloudinary después de fallar la creación en la base de datos");
+                    Log.Error(
+                        $"Error al eliminar la imagen de Cloudinary después de fallar la creación en la base de datos: {uploadResult.PublicId}"
+                    );
+                    throw new Exception(
+                        "Error al eliminar la imagen de Cloudinary después de fallar la creación en la base de datos"
+                    );
                 }
                 throw new Exception("Error al guardar la imagen en la base de datos");
             }
@@ -151,14 +211,20 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             var deleteResult = await _cloudinary.DestroyAsync(deletionParams);
             if (deleteResult.Error != null)
             {
-                Log.Error($"Error al eliminar la imagen con PublicId: {publicId} de Cloudinary: {deleteResult.Error.Message}");
+                Log.Error(
+                    $"Error al eliminar la imagen con PublicId: {publicId} de Cloudinary: {deleteResult.Error.Message}"
+                );
                 throw new Exception($"Error al eliminar la imagen: {deleteResult.Error.Message}");
             }
-            Log.Information($"Imagen con PublicId: {publicId} eliminada exitosamente de Cloudinary");
+            Log.Information(
+                $"Imagen con PublicId: {publicId} eliminada exitosamente de Cloudinary"
+            );
             var result = await _fileRepository.DeleteAsync(publicId);
             if (result is bool && !result.Value!)
             {
-                Log.Error($"Error al eliminar la imagen de la base de datos con PublicId: {publicId}");
+                Log.Error(
+                    $"Error al eliminar la imagen de la base de datos con PublicId: {publicId}"
+                );
                 throw new Exception("Error al eliminar la imagen de la base de datos");
             }
             else if (result is null)
@@ -166,7 +232,9 @@ namespace bolsafeucn_back.src.Application.Services.Implements
                 Log.Warning($"La imagen no existe en la base de datos con PublicId: {publicId}");
                 return false;
             }
-            Log.Information($"Imagen con PublicId: {publicId} eliminada exitosamente de la base de datos");
+            Log.Information(
+                $"Imagen con PublicId: {publicId} eliminada exitosamente de la base de datos"
+            );
             return true;
         }
 
@@ -182,10 +250,14 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             var deleteResult = await _cloudinary.DestroyAsync(deletionParams);
             if (deleteResult.Error != null)
             {
-                Log.Error($"Error al eliminar la imagen con PublicId: {publicId} de Cloudinary: {deleteResult.Error.Message}");
+                Log.Error(
+                    $"Error al eliminar la imagen con PublicId: {publicId} de Cloudinary: {deleteResult.Error.Message}"
+                );
                 return false;
             }
-            Log.Information($"Imagen con PublicId: {publicId} eliminada exitosamente de Cloudinary");
+            Log.Information(
+                $"Imagen con PublicId: {publicId} eliminada exitosamente de Cloudinary"
+            );
             return true;
         }
 

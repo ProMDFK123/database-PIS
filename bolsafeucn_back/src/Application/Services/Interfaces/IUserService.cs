@@ -1,4 +1,5 @@
 using bolsafeucn_back.src.Application.DTOs.AuthDTOs;
+using bolsafeucn_back.src.Application.DTOs.AuthDTOs.ResetPasswordDTOs;
 using bolsafeucn_back.src.Domain.Models;
 
 namespace bolsafeucn_back.src.Application.Services.Interfaces
@@ -30,5 +31,13 @@ namespace bolsafeucn_back.src.Application.Services.Interfaces
             HttpContext httpContext
         );
         Task<string> LoginAsync(LoginDTO loginDTO, HttpContext httpContext);
+        Task<string> SendResetPasswordVerificationCodeEmailAsync(
+            RequestResetPasswordCodeDTO requestResetPasswordCodeDTO,
+            HttpContext httpContext
+        );
+        Task<string> VerifyResetPasswordCodeAsync(
+            VerifyResetPasswordCodeDTO verifyResetPasswordCodeDTO,
+            HttpContext httpContext
+        );
     }
 }

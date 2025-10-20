@@ -1,5 +1,6 @@
 using bolsafe_ucn.src.Application.Services.Interfaces;
 using bolsafeucn_back.src.Application.DTOs.AuthDTOs;
+using bolsafeucn_back.src.Application.DTOs.AuthDTOs.ResetPasswordDTOs;
 using bolsafeucn_back.src.Application.Services.Interfaces;
 using bolsafeucn_back.src.Domain.Models;
 using bolsafeucn_back.src.Infrastructure.Repositories.Interfaces;
@@ -607,6 +608,144 @@ namespace bolsafeucn_back.src.Application.Services.Implements
                 role
             );
             return _tokenService.CreateToken(user, role, loginDTO.RememberMe);
+        }
+
+        public async Task<string> SendResetPasswordVerificationCodeEmailAsync(
+            RequestResetPasswordCodeDTO requestResetPasswordCodeDTO,
+            HttpContext httpContext
+        )
+        {
+            Log.Information(
+                "Enviando código de verificación de reseteo de contraseña al email: {Email}",
+                requestResetPasswordCodeDTO.Email
+            );
+            var user = await _userRepository.GetByEmailAsync(requestResetPasswordCodeDTO.Email);
+            if (user == null)
+            {
+                Log.Warning(
+                    "Intento de reseteo de contraseña para email no registrado: {Email}",
+                    requestResetPasswordCodeDTO.Email
+                );
+                throw new KeyNotFoundException("El usuario no existe.");
+            }
+            string code = new Random().Next(100000, 999999).ToString();
+            VerificationCode verificationCode = new VerificationCode
+            {
+                Code = code,
+                CodeType = CodeType.PasswordReset,
+                GeneralUserId = user.Id,
+                Expiration = DateTime.UtcNow.AddHours(1),
+            };
+            var newCode = await _verificationCodeRepository.CreateCodeAsync(verificationCode);
+            if (newCode == null)
+            {
+                Log.Error(
+                    "Error al crear código de verificación de reseteo de contraseña para usuario ID: {UserId}",
+                    user.Id
+                );
+                throw new InvalidOperationException("Error al crear el código de verificación.");
+            }
+            await _emailService.SendResetPasswordVerificationEmailAsync(user.Email!, newCode.Code);
+            Log.Information(
+                "Código de verificación de reseteo de contraseña enviado exitosamente para usuario ID:{UserId}, Email: {Email}",
+                user.Id,
+                user.Email
+            );
+            return "Correo de reseteo de contraseña enviado exitosamente.";
+        }
+
+        public async Task<string> VerifyResetPasswordCodeAsync(
+            VerifyResetPasswordCodeDTO verifyResetPasswordCodeDTO,
+            HttpContext httpContext
+        )
+        {
+            Log.Information(
+                "Verificando código de reseteo de contraseña para email: {Email}",
+                verifyResetPasswordCodeDTO.Email
+            );
+            var user = await _userRepository.GetByEmailAsync(verifyResetPasswordCodeDTO.Email);
+            if (user == null)
+            {
+                Log.Warning(
+                    "Intento de verificación de código de reseteo para email no registrado: {Email}",
+                    verifyResetPasswordCodeDTO.Email
+                );
+                throw new KeyNotFoundException("El usuario no existe.");
+            }
+            if (!user.EmailConfirmed)
+            {
+                Log.Warning(
+                    "Intento de verificación de código de reseteo para email no confirmado: {Email}",
+                    verifyResetPasswordCodeDTO.Email
+                );
+                throw new InvalidOperationException("El correo electrónico no ha sido confirmado.");
+            }
+            var verificationCode = await _verificationCodeRepository.GetByLatestUserIdAsync(
+                user.Id,
+                CodeType.PasswordReset
+            );
+            if (
+                verificationCode.Code != verifyResetPasswordCodeDTO.VerificationCode
+                || DateTime.UtcNow >= verificationCode.Expiration
+            )
+            {
+                int attempsCountUpdated = await _verificationCodeRepository.IncreaseAttemptsAsync(
+                    user.Id,
+                    verificationCode.CodeType
+                );
+                Log.Warning(
+                    "Intento de verificación fallido para usuario ID: {UserId}, Intentos: {Attempts}",
+                    user.Id,
+                    attempsCountUpdated
+                );
+
+                if (attempsCountUpdated >= 5)
+                {
+                    bool codeDeleteResult = await _verificationCodeRepository.DeleteByUserIdAsync(
+                        user.Id,
+                        verificationCode.CodeType
+                    );
+                    if (codeDeleteResult)
+                    {
+                        Log.Warning(
+                            "Código de verificación eliminado por exceder intentos. Email: {Email}, ID: {UserId}",
+                            user.Email,
+                            user.Id
+                        );
+                        throw new Exception(
+                            "Se ha alcanzado el límite de intentos. El código de verificación ha sido eliminado."
+                        );
+                    }
+                }
+                if (DateTime.UtcNow >= verificationCode.Expiration)
+                {
+                    Log.Warning(
+                        "Código de verificación expirado para usuario ID: {UserId}",
+                        user.Id
+                    );
+                    throw new Exception("El código de verificación ha expirado.");
+                }
+                else
+                {
+                    throw new Exception(
+                        $"El código de verificación es incorrecto, quedan {5 - attempsCountUpdated} intentos."
+                    );
+                }
+            }
+            Log.Information(
+                "Código de verificación de reseteo de contraseña válido para usuario ID: {UserId}",
+                user.Id
+            );
+            var newPasswordResult = await _userRepository.UpdatePasswordAsync(
+                user,
+                verifyResetPasswordCodeDTO.Password
+            );
+            if (!newPasswordResult)
+            {
+                Log.Error("Error al actualizar la contraseña para usuario ID: {UserId}", user.Id);
+                throw new Exception("Error al actualizar la contraseña.");
+            }
+            return "Contraseña actualizada exitosamente.";
         }
 
         /*public async Task<IEnumerable<GeneralUser>> GetUsuariosAsync()

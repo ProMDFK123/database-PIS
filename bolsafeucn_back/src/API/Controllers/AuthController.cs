@@ -1,4 +1,5 @@
 using bolsafeucn_back.src.Application.DTOs.AuthDTOs;
+using bolsafeucn_back.src.Application.DTOs.AuthDTOs.ResetPasswordDTOs;
 using bolsafeucn_back.src.Application.DTOs.BaseResponse;
 using bolsafeucn_back.src.Application.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -102,6 +103,45 @@ namespace bolsafeucn_back.src.API.Controllers
             );
             var token = await _service.LoginAsync(loginDTO, HttpContext);
             return Ok(new GenericResponse<string>("Login exitoso", token));
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> SendResetPasswordVerificationCodeEmail(
+            [FromBody] RequestResetPasswordCodeDTO requestResetPasswordCodeDTO
+        )
+        {
+            Log.Information(
+                "Endpoint: POST /api/auth/reset-password - Intento de reseteo de contraseña para: {Email}",
+                requestResetPasswordCodeDTO.Email
+            );
+            var message = await _service.SendResetPasswordVerificationCodeEmailAsync(
+                requestResetPasswordCodeDTO,
+                HttpContext
+            );
+            return Ok(
+                new GenericResponse<string>("Correo de reseteo de contraseña enviado", message)
+            );
+        }
+
+        [HttpPost("reset-password/verify")]
+        public async Task<IActionResult> VerifyResetPasswordCode(
+            [FromBody] VerifyResetPasswordCodeDTO verifyResetPasswordCodeDTO
+        )
+        {
+            Log.Information(
+                "Endpoint: POST /api/auth/reset-password/verify - Intento de verificación de código de reseteo de contraseña para: {Email}",
+                verifyResetPasswordCodeDTO.Email
+            );
+            var message = await _service.VerifyResetPasswordCodeAsync(
+                verifyResetPasswordCodeDTO,
+                HttpContext
+            );
+            return Ok(
+                new GenericResponse<string>(
+                    "Verificación de código de reseteo de contraseña exitosa",
+                    message
+                )
+            );
         }
 
         /*
