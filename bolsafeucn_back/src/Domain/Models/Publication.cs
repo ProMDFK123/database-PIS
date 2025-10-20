@@ -44,7 +44,7 @@ namespace bolsafeucn_back.src.Domain.Models
         /// <summary>
         /// Fecha y hora de publicación (UTC)
         /// </summary>
-        public DateTime PublicationDate { get; set; } = DateTime.Now;
+        public DateTime PublicationDate { get; set; } = DateTime.UtcNow;
 
         /// <summary>
         /// Colección de imágenes asociadas a la publicación

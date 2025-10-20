@@ -117,6 +117,8 @@ try
     builder.Services.AddScoped<ITokenService, TokenService>();
     builder.Services.AddScoped<IOfferService, OfferService>();
     builder.Services.AddScoped<IVerificationCodeRepository, VerificationCodeRepository>();
+    builder.Services.AddScoped<IPublicationService, PublicationService>();
+    builder.Services.AddScoped<IBuySellRepository, BuySellRepository>();
     #endregion
 
     var app = builder.Build();

@@ -1,8 +1,10 @@
+using Bogus.DataSets;
 using bolsafeucn_back.src.Application.DTO.BaseResponse;
 using bolsafeucn_back.src.Application.DTO.PublicationDTO;
 using bolsafeucn_back.src.Application.Services.Interfaces;
 using bolsafeucn_back.src.Domain.Models;
 using bolsafeucn_back.src.Infrastructure.Repositories.Interfaces;
+using Serilog;
 
 namespace bolsafeucn_back.src.Application.Services.Implements
 {
@@ -37,9 +39,8 @@ namespace bolsafeucn_back.src.Application.Services.Implements
                 {
                     Title = offerDTO.Title,
                     Description = offerDTO.Description,
-                    PublicationDate = offerDTO.PublicationDate,
-                    EndDate = offerDTO.ExpirationDate,
-                    DeadlineDate = offerDTO.ExpirationDate,
+                    PublicationDate = DateTime.SpecifyKind(offerDTO.PublicationDate, DateTimeKind.Utc),
+                    EndDate = DateTime.SpecifyKind(offerDTO.ExpirationDate, DateTimeKind.Utc),
                     Remuneration = (int)offerDTO.Remuneration,
                     OfferType = OfferTypes.Trabajo, // Por defecto, se puede ajustar según la categoría
                     UserId = currentUser.Id,
@@ -50,12 +51,21 @@ namespace bolsafeucn_back.src.Application.Services.Implements
                 };
 
                 await _offerRepository.CreateOfferAsync(offer);
+                return new GenericResponse<string>(
+                    message: "Oferta creada exitosamente",
+                    data: offer.Id.ToString(),
+                    success: true
+                );
             }
             catch (Exception)
             {
-                // TODO: Registrar el error en los logs
+                Log.Error("Error al crear la oferta para el usuario {UserId}", currentUser.Id);
+                return new GenericResponse<string>(
+                    message: "Error al crear la oferta",
+                    data: null,
+                    success: false
+                );
             }
-            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -80,12 +90,21 @@ namespace bolsafeucn_back.src.Application.Services.Implements
                 };
 
                 await _buySellRepository.CreateBuySellAsync(buySell);
+                return new GenericResponse<string>(
+                    message: "Publicación de compra/venta creada exitosamente",
+                    data: buySell.Id.ToString(),
+                    success: true
+                );
             }
             catch (Exception)
             {
-                // TODO: Registrar el error en los logs
+                Log.Error("Error al crear la publicación de compra/venta para el usuario {UserId}", currentUser.Id);
+                return new GenericResponse<string>(
+                    message: "Error al crear la publicación de compra/venta",
+                    data: null,
+                    success: false
+                );
             }
-            throw new NotImplementedException();
         }
     }
 }
