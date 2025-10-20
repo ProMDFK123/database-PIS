@@ -40,6 +40,24 @@ public class OfferRepository : IOfferRepository
         return offers;
     }
 
+    public async Task<IEnumerable<Offer>> GetAllPendingOffersAsync()
+    {
+        _logger.LogInformation("Consultando ofertas pendientes en la base de datos");
+        var offers = await _context
+            .Offers.Include(o => o.User)
+            .ThenInclude(gu => gu.Company)
+            .Include(o => o.User)
+            .ThenInclude(gu => gu.Individual)
+            .Where(o => !o.IsActive)
+            .AsNoTracking()
+            .ToListAsync();
+        _logger.LogInformation(
+            "Consulta completada: {Count} ofertas pendientes encontradas",
+            offers.Count
+        );
+        return offers;
+    }
+
     /// <summary>
     /// Obtiene una oferta por su ID con sus relaciones cargadas
     /// </summary>

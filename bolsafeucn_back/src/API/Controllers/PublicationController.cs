@@ -136,8 +136,31 @@ namespace bolsafeucn_back.src.API.Controllers
 
         #endregion
 
+        #region Obtiene las publicaciones aun no publicadas (admin)
+
+        /// <summary>
+        /// Obtiene todas las ofertas pendientes de validación solo disponibles para admin
+        /// </summary>
+        [Authorize(Roles = "Admin")]
+        [HttpGet("pending-offers")]
+        public async Task<IActionResult> GetPendingOffersForAdmin()
+        {
+            var offer = await _offerService.GetPendingOffersAsync();
+            if (offer == null)
+            {
+                return NotFound(new GenericResponse<string>("No hay ofertas pendientes", null));
+            }
+            return Ok(new GenericResponse<IEnumerable<OfferSummaryDto>>("Ofertas pendientes obtenidas", offer));
+        }
+
+
+        #endregion
+
         #region Validar ofertas (admin)
 
+        /// <summary>
+        /// Valida o rechaza una oferta laboral específica (solo admin)
+        /// </summary>
         [Authorize(Roles = "Admin")]
         [HttpPost("validate/{id}")]
         public async Task<IActionResult> OfferValidation(int id, [FromBody] OfferValidationDto offerValidationDto)
