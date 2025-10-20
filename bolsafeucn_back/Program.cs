@@ -22,11 +22,11 @@ Log.Logger = new LoggerConfiguration()
     )
     .CreateLogger();
 
+var builder = WebApplication.CreateBuilder(args);
+
 try
 {
     Log.Information("Starting web application");
-
-    var builder = WebApplication.CreateBuilder(args);
 
     // Serilog
     builder.Host.UseSerilog(
@@ -95,8 +95,8 @@ try
         {
             policy.WithOrigins(
                     "http://localhost:3000"      // Next.js dev
-                    // ,"https://localhost:3000"  // agrega si usas https en front
-                    // ,"https://localhost:7129"  // agrega si llamas al backend en https y navegas desde https
+                                                 // ,"https://localhost:3000"  // agrega si usas https en front
+                                                 // ,"https://localhost:7129"  // agrega si llamas al backend en https y navegas desde https
                 )
                 .WithHeaders(HeaderNames.ContentType, HeaderNames.Authorization, "Accept")
                 .WithMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
@@ -202,3 +202,8 @@ async Task SeedAndMapDatabase(IHost app)
     MapperExtensions.ConfigureMapster(serviceProvider);
     Log.Information("Seed de base de datos y configuración de mappers completados");
 }
+
+
+//REVIEWS
+builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
