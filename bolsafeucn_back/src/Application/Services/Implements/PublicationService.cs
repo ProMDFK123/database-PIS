@@ -3,6 +3,8 @@ using bolsafeucn_back.src.Application.DTOs.PublicationDTO;
 using bolsafeucn_back.src.Application.Services.Interfaces;
 using bolsafeucn_back.src.Domain.Models;
 using bolsafeucn_back.src.Infrastructure.Repositories.Interfaces;
+using Mapster;
+using MapsterMapper;
 using Microsoft.Extensions.Logging;
 
 namespace bolsafeucn_back.src.Application.Services.Implements
@@ -16,15 +18,22 @@ namespace bolsafeucn_back.src.Application.Services.Implements
         private readonly IBuySellRepository _buySellRepository;
         private readonly ILogger<PublicationService> _logger;
 
+        private readonly IPublicationRepository _publicationRepository;
+        private readonly IMapper _mapper;
+
         public PublicationService(
             IOfferRepository offerRepository,
             IBuySellRepository buySellRepository,
-            ILogger<PublicationService> logger
+            ILogger<PublicationService> logger,
+            IPublicationRepository publicationRepository,
+            IMapper mapper
         )
         {
             _offerRepository = offerRepository;
             _buySellRepository = buySellRepository;
             _logger = logger;
+            _publicationRepository = publicationRepository;
+            _mapper = mapper;
         }
 
         /// <summary>
@@ -132,6 +141,47 @@ namespace bolsafeucn_back.src.Application.Services.Implements
                     null
                 );
             }
+        }
+
+        public async Task<IEnumerable<PublicationsDTO>> GetMyPublishedPublicationsAsync(
+            string userId
+        )
+        {
+            // 1. Llama al Repositorio para obtener los datos de la BD
+            var publications = await _publicationRepository.GetPublishedPublicationsByUserIdAsync(
+                userId
+            );
+
+            // 2. Mapea las entidades a DTOs
+            var publicationsDto = _mapper.Adapt<IEnumerable<PublicationsDTO>>(
+                (TypeAdapterConfig)publications
+            );
+
+            // 3. Devuelve el DTO
+            return publicationsDto;
+        }
+
+        public async Task<IEnumerable<PublicationsDTO>> GetMyRejectedPublicationsAsync(
+            string userId
+        )
+        {
+            // 1. Llama al repositorio
+            var publications = await _publicationRepository.GetRejectedPublicationsByUserIdAsync(
+                userId
+            );
+            // 2. Mapea y devuelve el DTO
+            return _mapper.Adapt<IEnumerable<PublicationsDTO>>((TypeAdapterConfig)publications);
+        }
+
+        // --- IMPLEMENTACIÓN PENDING ("InProcess") ---
+        public async Task<IEnumerable<PublicationsDTO>> GetMyPendingPublicationsAsync(string userId)
+        {
+            // 1. Llama al repositorio
+            var publications = await _publicationRepository.GetPendingPublicationsByUserIdAsync(
+                userId
+            );
+            // 2. Mapea y devuelve el DTO
+            return _mapper.Adapt<IEnumerable<PublicationsDTO>>((TypeAdapterConfig)publications);
         }
     }
 }
