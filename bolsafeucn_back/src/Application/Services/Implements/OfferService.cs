@@ -140,7 +140,6 @@ public class OfferService : IOfferService
                 Title = o.Title,
                 CompanyName = ownerName,
                 OwnerName = ownerName,
-                Location = "Campus Antofagasta",
                 Remuneration = o.Remuneration,
                 DeadlineDate = o.DeadlineDate,
                 PublicationDate = o.PublicationDate,

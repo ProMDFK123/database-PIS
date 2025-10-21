@@ -14,5 +14,6 @@ namespace bolsafeucn_back.src.Application.Services.Interfaces
             CreateBuySellDTO publicationDTO,
             GeneralUser currentUser
         );
+        Task<IEnumerable<BuySellSummaryDto>> GetAllPendingBuySellsAsync();
     }
 }
