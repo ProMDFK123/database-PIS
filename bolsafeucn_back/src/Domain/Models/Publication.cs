@@ -9,6 +9,13 @@ namespace bolsafeucn_back.src.Domain.Models
         BuySell, // Compra/Venta
     }
 
+    public enum StatusValidation
+    {
+        Published, // Oferta publicada con validación del administrador
+        InProcess, // Oferta en proceso de evaluación del administrador
+        Rejected, // Oferta rechazada por el administrador
+    }
+
     /// <summary>
     /// Clase base abstracta para todas las publicaciones del sistema
     /// Hereda de esta clase: Offer, BuySell
@@ -59,5 +66,10 @@ namespace bolsafeucn_back.src.Domain.Models
         /// Indica si la publicación está activa y visible para los usuarios
         /// </summary>
         public bool IsActive { get; set; }
+
+        /// <summary>
+        /// Indica el estado en que se encuentra una publicación que es evaluada por el administrador
+        /// </summary>
+        public StatusValidation statusValidation { get; set; }
     }
 }

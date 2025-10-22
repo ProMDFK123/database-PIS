@@ -11,6 +11,11 @@ namespace bolsafeucn_back.src.Application.Services.Interfaces
         /// Obtiene todas las publicaciones de compra/venta activas
         /// </summary>
         Task<IEnumerable<BuySellSummaryDto>> GetActiveBuySellsAsync();
+        
+        /// <summary>
+        /// Obtiene todas las publicaciones de compra/venta pendientes de validación
+        /// </summary>
+        Task<IEnumerable<BuySellSummaryDto>>GetAllPendingBuySellsAsync();
 
         /// <summary>
         /// Obtiene los detalles de una publicación de compra/venta específica

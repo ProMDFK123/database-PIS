@@ -14,5 +14,13 @@ namespace bolsafeucn_back.src.Application.Services.Interfaces
             CreateBuySellDTO publicationDTO,
             GeneralUser currentUser
         );
+        /// <summary>
+        /// Funcion
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        Task<IEnumerable<PublicationsDTO>> GetMyPublishedPublicationsAsync(string userId);
+        Task<IEnumerable<PublicationsDTO>> GetMyRejectedPublicationsAsync(string userId);
+        Task<IEnumerable<PublicationsDTO>> GetMyPendingPublicationsAsync(string userId);
     }
 }

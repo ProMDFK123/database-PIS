@@ -11,10 +11,12 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Implements
     public class BuySellRepository : IBuySellRepository
     {
         private readonly AppDbContext _context;
+        private readonly ILogger<BuySellRepository> _logger;
 
-        public BuySellRepository(AppDbContext context)
+        public BuySellRepository(AppDbContext context, ILogger<BuySellRepository> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         public async Task<BuySell> CreateBuySellAsync(BuySell buySell)
@@ -43,6 +45,24 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Implements
                 .OrderByDescending(bs => bs.PublicationDate)
                 .AsNoTracking()
                 .ToListAsync();
+        }
+
+        public async Task<IEnumerable<BuySell>> GetAllPendingBuySellsAsync()
+        {
+            _logger.LogInformation("Consultando publicaciones de compra/venta pendientes en la base de datos");
+            var buysell = await _context
+                .BuySells.Include(bs => bs.User)
+                .ThenInclude(u => u.Company)
+                .Include(bs => bs.User)
+                .ThenInclude(u => u.Individual)
+                .Include(bs => bs.Images)
+                .Where(bs => bs.statusValidation == StatusValidation.InProcess)
+                .OrderByDescending(bs => bs.PublicationDate)
+                .AsNoTracking()
+                .ToListAsync();
+            _logger.LogInformation(
+                "Consulta completada: {Count} publicaciones de compra/venta pendientes encontradas", buysell.Count);
+            return buysell;
         }
 
         public async Task<BuySell?> GetByIdAsync(int id)

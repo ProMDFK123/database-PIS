@@ -7,6 +7,7 @@ using bolsafeucn_back.src.Domain.Models;
 using bolsafeucn_back.src.Infrastructure.Data;
 using bolsafeucn_back.src.Infrastructure.Repositories.Implements;
 using bolsafeucn_back.src.Infrastructure.Repositories.Interfaces;
+using Mapster;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -149,10 +150,9 @@ try
     builder.Services.AddScoped<IJobApplicationService, JobApplicationService>();
     builder.Services.AddScoped<IPublicationService, PublicationService>();
     builder.Services.AddScoped<IBuySellService, BuySellService>();
+    builder.Services.AddScoped<IPublicationRepository, PublicationRepository>();
 
-    //REVIEWS
-    builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
-    builder.Services.AddScoped<IReviewService, ReviewService>();
+    builder.Services.AddMapster();
 
     var app = builder.Build();
 
@@ -211,3 +211,7 @@ async Task SeedAndMapDatabase(IHost app)
     MapperExtensions.ConfigureMapster(serviceProvider);
     Log.Information("Seed de base de datos y configuración de mappers completados");
 }
+
+//REVIEWS
+builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
+builder.Services.AddScoped<IReviewService, ReviewService>();

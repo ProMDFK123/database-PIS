@@ -1,10 +1,14 @@
 using System.Security.Claims;
 using bolsafeucn_back.src.Application.DTOs.BaseResponse;
 using bolsafeucn_back.src.Application.DTOs.JobAplicationDTO;
+using bolsafeucn_back.src.Application.DTOs.OfferDTOs;
 using bolsafeucn_back.src.Application.DTOs.PublicationDTO;
+using bolsafeucn_back.src.Application.Services.Implements;
 using bolsafeucn_back.src.Application.Services.Interfaces;
 using bolsafeucn_back.src.Domain.Models;
 using bolsafeucn_back.src.Infrastructure.Repositories.Interfaces;
+using Mapster;
+using MapsterMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -23,6 +27,7 @@ namespace bolsafeucn_back.src.API.Controllers
         private readonly IBuySellService _buySellService;
         private readonly IJobApplicationService _jobApplicationService;
         private readonly ILogger<PublicationController> _logger;
+        private readonly IPublicationRepository _publicationRepository;
 
         public PublicationController(
             IPublicationService publicationService,
@@ -30,7 +35,8 @@ namespace bolsafeucn_back.src.API.Controllers
             IOfferService offerService,
             IBuySellService buySellService,
             IJobApplicationService jobApplicationService,
-            ILogger<PublicationController> logger
+            ILogger<PublicationController> logger,
+            IPublicationRepository publicationRepository
         )
         {
             _publicationService = publicationService;
@@ -39,6 +45,7 @@ namespace bolsafeucn_back.src.API.Controllers
             _buySellService = buySellService;
             _jobApplicationService = jobApplicationService;
             _logger = logger;
+            _publicationRepository = publicationRepository;
         }
 
         #region Crear Publicaciones (Requiere autenticación)
@@ -130,6 +137,109 @@ namespace bolsafeucn_back.src.API.Controllers
             }
 
             return Ok(response);
+        }
+
+        #endregion
+
+        #region Obtiene publicaciones y mas (admin)
+
+        /// <summary>
+        /// Obtiene todas las ofertas pendientes de validación solo disponibles para admin
+        /// </summary>
+        [Authorize(Roles = "Admin")]
+        [HttpGet("InProcess-offers")]
+        public async Task<IActionResult> GetPendingOffersForAdmin()
+        {
+            var offer = await _offerService.GetPendingOffersAsync();
+            if (offer == null)
+            {
+                return NotFound(new GenericResponse<string>("No hay ofertas pendientes", null));
+            }
+            return Ok(
+                new GenericResponse<IEnumerable<OfferSummaryDto>>(
+                    "Ofertas pendientes obtenidas",
+                    offer
+                )
+            );
+        }
+
+        /// <summary>
+        /// Obtiene todas las publicaciones de compra/venta pendientes de validación solo disponibles para admin
+        /// </summary>
+        [Authorize(Roles = "Admin")]
+        [HttpGet("InProcess-buysells")]
+        public async Task<IActionResult> GetPendingBuySellsForAdmin()
+        {
+            var buySell = await _buySellService.GetAllPendingBuySellsAsync();
+            if (buySell == null)
+            {
+                return NotFound(new GenericResponse<string>("No hay publicaciones de compra/venta pendientes", null));
+            }
+            return Ok(new GenericResponse<IEnumerable<BuySellSummaryDto>>("Publicaciones de compra/venta pendientes obtenidas", buySell));
+        }
+
+        /// <summary>
+        /// Obtiene todas las ofertas publicadas solo disponibles para admin
+        /// </summary>
+        [Authorize(Roles = "Admin")]
+        [HttpGet("published-offers")]
+        public async Task<IActionResult> GetPublishedOffersForAdmin()
+        {
+            var offer = await _offerService.GetPublishedOffersAsync();
+            if (offer == null)
+            {
+                return NotFound(new GenericResponse<string>("No hay ofertas publicadas", null));
+            }
+            return Ok(
+                new GenericResponse<IEnumerable<OfferSummaryDto>>(
+                    "Ofertas publicadas obtenidas",
+                    offer
+                )
+            );
+        }
+
+
+        #endregion
+
+        #region Validar ofertas (admin)
+
+        /// <summary>
+        /// Valida o rechaza una oferta laboral específica (solo admin)
+        /// </summary>
+        [Authorize(Roles = "Admin")]
+        [HttpPost("validate/{id}")]
+        public async Task<IActionResult> OfferValidation(
+            int id,
+            [FromBody] OfferValidationDto offerValidationDto
+        )
+        {
+            var offer = await _offerService.GetOfferDetailsAsync(id);
+            if (offer == null)
+                return NotFound("Offer doesn't exist.");
+
+            if (
+                offerValidationDto == null
+                || string.IsNullOrWhiteSpace(offerValidationDto.Accepted)
+            )
+                return BadRequest("Field 'Accepted'  is required, use yes or no");
+
+            var decision = offerValidationDto.Accepted.Trim().ToLower();
+
+            if (decision != "yes" && decision != "no")
+                return BadRequest("The 'Accepted' field must be either 'yes' or 'no'.");
+
+            bool isAccepted = decision == "yes";
+
+            if (isAccepted)
+            {
+                await _offerService.PublishOfferAsync(id);
+                return Ok(new { message = $"Offer {id} has been published successfully." });
+            }
+            else
+            {
+                await _offerService.RejectOfferAsync(id);
+                return Ok(new { message = $"Offer {id} was rejected." });
+            }
         }
 
         #endregion
@@ -407,6 +517,141 @@ namespace bolsafeucn_back.src.API.Controllers
                     500,
                     new GenericResponse<object>("Error al obtener las postulaciones")
                 );
+            }
+        }
+
+        #endregion
+
+
+        #region Obtener Publicaciones por Status(Filtro para Empresa y Particular)
+
+        // Importante para usar el enum
+
+        // ... (dentro de tu clase PublicationController)
+
+        /// <summary>
+        /// Obtiene todas las publicaciones PUBLICADAS del usuario autenticado.
+        /// </summary>
+        [HttpGet("my-published")]
+        [Authorize]
+        public async Task<IActionResult> GetMyPublishedPublications()
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (userId == null)
+                {
+                    _logger.LogWarning("No cuenta con autorización");
+                    return Unauthorized(
+                        new GenericResponse<object>("No autenticado o token inválido")
+                    );
+                }
+
+                var publicationsDto = await _publicationService.GetMyPublishedPublicationsAsync(
+                    userId
+                );
+
+                return Ok(
+                    new GenericResponse<IEnumerable<PublicationsDTO>>(
+                        "Ofertas pendientes obtenidas",
+                        publicationsDto
+                    )
+                );
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogWarning(ex, "Recurso no encontrado");
+                return NotFound(new GenericResponse<object>(ex.Message));
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "Operación inválida");
+                return Conflict(new GenericResponse<object>(ex.Message));
+            }
+        }
+
+        /// <summary>
+        /// Obtiene todas las publicaciones PENDIENTES del usuario autenticado.
+        /// </summary>
+        [HttpGet("my-pending")]
+        [Authorize]
+        public async Task<IActionResult> GetMyPendingPublications()
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (userId == null)
+                {
+                    _logger.LogWarning("No cuenta con autorización");
+                    return Unauthorized(
+                        new GenericResponse<object>("No autenticado o token inválido")
+                    );
+                }
+
+                var publicationsDto = await _publicationService.GetMyPendingPublicationsAsync(
+                    userId
+                );
+
+                return Ok(
+                    new GenericResponse<IEnumerable<PublicationsDTO>>(
+                        "Ofertas pendientes obtenidas",
+                        publicationsDto
+                    )
+                );
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogWarning(ex, "Recurso no encontrado");
+                return NotFound(new GenericResponse<object>(ex.Message));
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "Operación inválida");
+                return Conflict(new GenericResponse<object>(ex.Message));
+            }
+        }
+
+        /// <summary>
+        /// Obtiene todas las publicaciones RECHAZADAS del usuario autenticado.
+        /// </summary>
+        [HttpGet("my-rejected")]
+        [Authorize]
+        public async Task<IActionResult> GetMyRejectedPublications()
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (userId == null)
+                {
+                    _logger.LogWarning("No cuenta con autorización");
+                    return Unauthorized(
+                        new GenericResponse<object>("No autenticado o token inválido")
+                    );
+                }
+
+                var publicationsDto = await _publicationService.GetMyRejectedPublicationsAsync(
+                    userId
+                );
+
+                return Ok(
+                    new GenericResponse<IEnumerable<PublicationsDTO>>(
+                        "Ofertas pendientes obtenidas",
+                        publicationsDto
+                    )
+                );
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogWarning(ex, "Recurso no encontrado");
+                return NotFound(new GenericResponse<object>(ex.Message));
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "Operación inválida");
+                return Conflict(new GenericResponse<object>(ex.Message));
             }
         }
 
