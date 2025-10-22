@@ -10,7 +10,7 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Implements
 {
     public class FileRepository
     {
-       private readonly AppDbContext _context;
+        private readonly AppDbContext _context;
 
         public FileRepository(AppDbContext context)
         {

@@ -11,8 +11,6 @@ public interface IOfferRepository
     Task<IEnumerable<Offer>> GetAllOffersAsync();
     Task<IEnumerable<Offer>> GetOffersByUserIdAsync(int userId);
     Task<IEnumerable<Offer>> GetAllPendingOffersAsync();
-
-    // Métodos de escritura
     Task<Offer> CreateOfferAsync(Offer offer);
     Task<bool> UpdateOfferAsync(Offer offer);
     Task<bool> DeleteOfferAsync(int id);
