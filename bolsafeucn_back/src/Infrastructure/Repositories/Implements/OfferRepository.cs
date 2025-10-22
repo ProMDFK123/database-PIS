@@ -40,6 +40,9 @@ public class OfferRepository : IOfferRepository
         return offers;
     }
 
+    /// <summary>
+    /// Obtiene todas las ofertas que están pendientes de validación
+    /// </summary>
     public async Task<IEnumerable<Offer>> GetAllPendingOffersAsync()
     {
         _logger.LogInformation("Consultando ofertas pendientes en la base de datos");
@@ -53,6 +56,27 @@ public class OfferRepository : IOfferRepository
             .ToListAsync();
         _logger.LogInformation(
             "Consulta completada: {Count} ofertas pendientes encontradas",
+            offers.Count
+        );
+        return offers;
+    }
+
+    /// <summary>
+    /// Obtiene todas las ofertas que han sido publicadas
+    /// </summary>
+    public async Task<IEnumerable<Offer>> PublishedOffersAsync()
+    {
+        _logger.LogInformation("Consultando ofertas publicadas en la base de datos");
+        var offers = await _context
+            .Offers.Include(o => o.User)
+            .ThenInclude(gu => gu.Company)
+            .Include(o => o.User)
+            .ThenInclude(gu => gu.Individual)
+            .Where(o => o.statusValidation == StatusValidation.Published)
+            .AsNoTracking()
+            .ToListAsync();
+        _logger.LogInformation(
+            "Consulta completada: {Count} ofertas publicadas encontradas",
             offers.Count
         );
         return offers;

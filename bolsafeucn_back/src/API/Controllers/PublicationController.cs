@@ -141,13 +141,13 @@ namespace bolsafeucn_back.src.API.Controllers
 
         #endregion
 
-        #region Obtiene las publicaciones aun no publicadas (admin)
+        #region Obtiene publicaciones y mas (admin)
 
         /// <summary>
         /// Obtiene todas las ofertas pendientes de validación solo disponibles para admin
         /// </summary>
         [Authorize(Roles = "Admin")]
-        [HttpGet("pending-offers")]
+        [HttpGet("InProcess-offers")]
         public async Task<IActionResult> GetPendingOffersForAdmin()
         {
             var offer = await _offerService.GetPendingOffersAsync();
@@ -167,7 +167,7 @@ namespace bolsafeucn_back.src.API.Controllers
         /// Obtiene todas las publicaciones de compra/venta pendientes de validación solo disponibles para admin
         /// </summary>
         [Authorize(Roles = "Admin")]
-        [HttpGet("pending-buysells")]
+        [HttpGet("InProcess-buysells")]
         public async Task<IActionResult> GetPendingBuySellsForAdmin()
         {
             var buySell = await _buySellService.GetAllPendingBuySellsAsync();
@@ -176,6 +176,26 @@ namespace bolsafeucn_back.src.API.Controllers
                 return NotFound(new GenericResponse<string>("No hay publicaciones de compra/venta pendientes", null));
             }
             return Ok(new GenericResponse<IEnumerable<BuySellSummaryDto>>("Publicaciones de compra/venta pendientes obtenidas", buySell));
+        }
+
+        /// <summary>
+        /// Obtiene todas las ofertas publicadas solo disponibles para admin
+        /// </summary>
+        [Authorize(Roles = "Admin")]
+        [HttpGet("published-offers")]
+        public async Task<IActionResult> GetPublishedOffersForAdmin()
+        {
+            var offer = await _offerService.GetPublishedOffersAsync();
+            if (offer == null)
+            {
+                return NotFound(new GenericResponse<string>("No hay ofertas publicadas", null));
+            }
+            return Ok(
+                new GenericResponse<IEnumerable<OfferSummaryDto>>(
+                    "Ofertas publicadas obtenidas",
+                    offer
+                )
+            );
         }
 
 
