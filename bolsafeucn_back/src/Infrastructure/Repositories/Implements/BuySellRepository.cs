@@ -56,7 +56,7 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Implements
                 .Include(bs => bs.User)
                 .ThenInclude(u => u.Individual)
                 .Include(bs => bs.Images)
-                .Where(bs => !bs.IsActive) 
+                .Where(bs => bs.statusValidation == StatusValidation.InProcess)
                 .OrderByDescending(bs => bs.PublicationDate)
                 .AsNoTracking()
                 .ToListAsync();

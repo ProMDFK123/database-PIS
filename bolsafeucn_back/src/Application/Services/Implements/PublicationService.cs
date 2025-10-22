@@ -182,32 +182,6 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             );
             // 2. Mapea y devuelve el DTO
             return _mapper.Adapt<IEnumerable<PublicationsDTO>>((TypeAdapterConfig)publications);
-        public async Task<IEnumerable<BuySellSummaryDto>> GetAllPendingBuySellsAsync()
-        {
-            _logger.LogInformation("Obteniendo publicaciones de compra/venta pendientes de validación");
-
-            var BuySells = await _buySellRepository.GetAllPendingBuySellsAsync();
-            var list = BuySells.ToList();
-            var result = list.Select(o =>
-            {
-                var ownerName =
-                    o.User?.UserType == UserType.Empresa
-                        ? (o.User.Company?.CompanyName ?? "Empresa desconocida")
-                    : o.User?.UserType == UserType.Particular
-                        ? $"{(o.User.Individual?.Name ?? "").Trim()} {(o.User.Individual?.LastName ?? "").Trim()}".Trim()
-                    : (o.User?.UserName ?? "UCN");
-
-                return new BuySellSummaryDto
-                {
-                    Id = o.Id,
-                    Title = o.Title,
-                    Category = o.Category,
-                    Price = o.Price,
-                    UserName = ownerName,
-                };
-            }).ToList();
-
-            return result;
-        }
+        }    
     }
 }

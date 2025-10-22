@@ -152,16 +152,6 @@ public class OfferService : IOfferService
                 };
             })
             .ToList();
-                Id = o.Id,
-                Title = o.Title,
-                CompanyName = ownerName,
-                OwnerName = ownerName,
-                Remuneration = o.Remuneration,
-                DeadlineDate = o.DeadlineDate,
-                PublicationDate = o.PublicationDate,
-                OfferType = o.OfferType
-            };
-        }).ToList();
         return result;
     }
 }

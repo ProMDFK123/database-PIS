@@ -48,7 +48,7 @@ public class OfferRepository : IOfferRepository
             .ThenInclude(gu => gu.Company)
             .Include(o => o.User)
             .ThenInclude(gu => gu.Individual)
-            .Where(o => !o.IsActive)
+            .Where(o => o.statusValidation == StatusValidation.InProcess)
             .AsNoTracking()
             .ToListAsync();
         _logger.LogInformation(

@@ -170,7 +170,7 @@ namespace bolsafeucn_back.src.API.Controllers
         [HttpGet("pending-buysells")]
         public async Task<IActionResult> GetPendingBuySellsForAdmin()
         {
-            var buySell = await _publicationService.GetAllPendingBuySellsAsync();
+            var buySell = await _buySellService.GetAllPendingBuySellsAsync();
             if (buySell == null)
             {
                 return NotFound(new GenericResponse<string>("No hay publicaciones de compra/venta pendientes", null));
