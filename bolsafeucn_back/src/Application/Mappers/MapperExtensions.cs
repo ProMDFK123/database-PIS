@@ -16,6 +16,8 @@ namespace bolsafeucn_back.src.Application.Mappers
             adminMapper?.ConfigureAllMappings();
             var offerMapper = serviceProvider.GetService<OfferMapper>();
             offerMapper?.ConfigureAllMappings();
+            var buySellMapper = serviceProvider.GetService<BuySellMapper>();
+            buySellMapper?.ConfigureAllMappings();
 
             TypeAdapterConfig.GlobalSettings.Default.IgnoreNullValues(true);
         }

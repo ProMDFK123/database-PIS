@@ -163,6 +163,22 @@ namespace bolsafeucn_back.src.API.Controllers
             );
         }
 
+        /// <summary>
+        /// Obtiene todas las publicaciones de compra/venta pendientes de validación solo disponibles para admin
+        /// </summary>
+        [Authorize(Roles = "Admin")]
+        [HttpGet("pending-buysells")]
+        public async Task<IActionResult> GetPendingBuySellsForAdmin()
+        {
+            var buySell = await _publicationService.GetAllPendingBuySellsAsync();
+            if (buySell == null)
+            {
+                return NotFound(new GenericResponse<string>("No hay publicaciones de compra/venta pendientes", null));
+            }
+            return Ok(new GenericResponse<IEnumerable<BuySellSummaryDto>>("Publicaciones de compra/venta pendientes obtenidas", buySell));
+        }
+
+
         #endregion
 
         #region Validar ofertas (admin)

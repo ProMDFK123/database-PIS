@@ -18,6 +18,11 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Interfaces
         Task<IEnumerable<BuySell>> GetAllActiveAsync();
 
         /// <summary>
+        /// Obtiene todas las publicaciones de compra/venta pendientes de aprobación
+        /// </summary>
+        Task<IEnumerable<BuySell>> GetAllPendingBuySellsAsync();
+
+        /// <summary>
         /// Obtiene una publicación de compra/venta por su ID
         /// </summary>
         Task<BuySell?> GetByIdAsync(int id);
