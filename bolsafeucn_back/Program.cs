@@ -7,6 +7,7 @@ using bolsafeucn_back.src.Domain.Models;
 using bolsafeucn_back.src.Infrastructure.Data;
 using bolsafeucn_back.src.Infrastructure.Repositories.Implements;
 using bolsafeucn_back.src.Infrastructure.Repositories.Interfaces;
+using Mapster;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -150,6 +151,8 @@ try
     builder.Services.AddScoped<IPublicationService, PublicationService>();
     builder.Services.AddScoped<IBuySellService, BuySellService>();
     builder.Services.AddScoped<IPublicationRepository, PublicationRepository>();
+
+    builder.Services.AddMapster();
 
     var app = builder.Build();
 

@@ -8,10 +8,6 @@ namespace bolsafeucn_back.src.Application.DTOs.BaseResponse;
 /// <param name="data">Datos de la respuesta (opcional).</param>
 public class GenericResponse<T>(string message, T? data = default)
 {
-    public GenericResponse()
-    {
-    }
-
     /// <summary>
     /// Mensaje principal de la respuesta.
     /// </summary>
