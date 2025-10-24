@@ -1,11 +1,11 @@
-using bolsafeucn_back.src.Application.DTOs;
+using bolsafeucn_back.src.Application.DTOs.ReviewDTO;
 using bolsafeucn_back.src.Application.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace bolsafeucn_back.src.API.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/reviews/[action]")]
     public class ReviewController : ControllerBase
     {
         private readonly IReviewService _reviewService;
@@ -24,17 +24,24 @@ namespace bolsafeucn_back.src.API.Controllers
         }
 
         [HttpGet("{providerId}")]
-        public async Task<IActionResult> GetReviews(string providerId)
+        public async Task<IActionResult> GetReviews(int providerId)
         {
             var reviews = await _reviewService.GetReviewsByProviderAsync(providerId);
             return Ok(reviews);
         }
 
-        [HttpGet("{providerId}/average")]
-        public async Task<IActionResult> GetAverage(string providerId)
+        [HttpGet("{providerId}")]
+        public async Task<IActionResult> GetAverage(int providerId)
         {
             var avg = await _reviewService.GetAverageRatingAsync(providerId);
             return Ok(avg);
+        }
+
+        [HttpPost("addStudentReview")]
+        public async Task<IActionResult> AddStudentReview([FromBody] ReviewForStudentDTO dto)
+        {
+            await _reviewService.AddStudentReviewAsync(dto);
+            return Ok("Student review added successfully");
         }
     }
 }

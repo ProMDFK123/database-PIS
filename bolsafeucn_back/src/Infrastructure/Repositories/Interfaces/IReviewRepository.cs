@@ -5,7 +5,8 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Interfaces
     public interface IReviewRepository
     {
         Task AddAsync(Review review);
-        Task<IEnumerable<Review>> GetByProviderIdAsync(string providerId);
-        Task<double> GetAverageRatingAsync(string providerId);
+        Task<IEnumerable<Review>> GetByOfferorIdAsync(int offerorId);
+        Task<double?> GetAverageRatingAsync(int providerId);
+        Task<Review?> GetByPublicationIdAsync(int publicationId);
     }
 }

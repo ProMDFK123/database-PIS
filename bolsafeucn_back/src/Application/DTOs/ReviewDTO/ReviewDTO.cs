@@ -1,4 +1,4 @@
-namespace bolsafeucn_back.src.Application.DTOs
+namespace bolsafeucn_back.src.Application.DTOs.ReviewDTO
 {
     public class ReviewDTO
     {

@@ -1,7 +1,7 @@
 using bolsafeucn_back.src.Domain.Models;
 using bolsafeucn_back.src.Infrastructure.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using bolsafeucn_back.src.Infrastructure.Data; // 🔹 Importante: agrega esto para reconocer AppDbContext
+using bolsafeucn_back.src.Infrastructure.Data;
 
 namespace bolsafeucn_back.src.Infrastructure.Repositories.Implements
 {
@@ -20,19 +20,27 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Implements
             await _context.SaveChangesAsync();
         }
 
-        public async Task<IEnumerable<Review>> GetByProviderIdAsync(string providerId)
+        public async Task<IEnumerable<Review>> GetByOfferorIdAsync(int offerorId)
         {
             return await _context.Reviews
-                .Where(r => r.ProviderId == providerId)
+                .Where(r => r.OfferorId == offerorId)
                 .Include(r => r.Student)
                 .ToListAsync();
         }
 
-        public async Task<double> GetAverageRatingAsync(string providerId)
+        public async Task<double?> GetAverageRatingAsync(int offerorId)
+        {
+            // TODO: Cambiado temporalmente a "OfferorId"
+            return await _context.Reviews
+                .Where(r => r.OfferorId == offerorId)
+                .AverageAsync(r => (double?)r.RatingForProvider);
+        }
+
+        public async Task<Review?> GetByPublicationIdAsync(int publicationId)
         {
             return await _context.Reviews
-                .Where(r => r.ProviderId == providerId)
-                .AverageAsync(r => r.Rating);
+                .Where(r => r.PublicationId == publicationId)
+                .FirstOrDefaultAsync();
         }
     }
 }
