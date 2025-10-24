@@ -19,19 +19,20 @@ namespace bolsafeucn_back.src.Application.Services.Implements
         {
             // var review = ReviewMapper.ToEntity(dto);
             // await _repository.AddAsync(review);
+            throw new NotImplementedException();
         }
 
-        public async Task<IEnumerable<ReviewDTO>> GetReviewsByProviderAsync(int providerId)
+        public async Task<IEnumerable<ReviewDTO>> GetReviewsByOfferorAsync(int offerorId)
         {
             // TODO: Arreglar esto
             return null;
-            // var reviews = await _repository.GetByProviderIdAsync(providerId);
+            // var reviews = await _repository.GetByOfferorIdAsync(offerorId);
             // return reviews.Select(ReviewMapper.ToDTO);
         }
 
-        public async Task<double?> GetAverageRatingAsync(int providerId)
+        public async Task<double?> GetAverageRatingAsync(int offerorId)
         {
-            return await _repository.GetAverageRatingAsync(providerId);
+            return await _repository.GetAverageRatingAsync(offerorId);
         }
 
         public async Task AddStudentReviewAsync(ReviewForStudentDTO dto)

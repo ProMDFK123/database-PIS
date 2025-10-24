@@ -28,7 +28,7 @@ namespace bolsafeucn_back.src.Application.Mappers
                 StudentId = dto.StudentId,
                 OfferorId = dto.OfferorId,
                 PublicationId = dto.PublicationId,
-                ReviewWindowEndDate = dto.ReviewWindowEndTime
+                ReviewWindowEndDate = DateTime.UtcNow.AddDays(14) // 14 días automáticos desde que se recibe el DTO
             };
         }
         // public static Review ToEntity(ReviewDTO dto)

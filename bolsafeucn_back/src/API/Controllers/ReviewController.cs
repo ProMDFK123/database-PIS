@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace bolsafeucn_back.src.API.Controllers
 {
     [ApiController]
-    [Route("api/reviews/[action]")]
+    [Route("api/reviews/[action]")] // [action] es el nombre de la funcion.
     public class ReviewController : ControllerBase
     {
         private readonly IReviewService _reviewService;
@@ -23,17 +23,17 @@ namespace bolsafeucn_back.src.API.Controllers
             return Ok("Review added successfully");
         }
 
-        [HttpGet("{providerId}")]
-        public async Task<IActionResult> GetReviews(int providerId)
+        [HttpGet("{offerorId}")]
+        public async Task<IActionResult> GetReviews(int offerorId)
         {
-            var reviews = await _reviewService.GetReviewsByProviderAsync(providerId);
+            var reviews = await _reviewService.GetReviewsByOfferorAsync(offerorId);
             return Ok(reviews);
         }
 
-        [HttpGet("{providerId}")]
-        public async Task<IActionResult> GetAverage(int providerId)
+        [HttpGet("{offerorId}")]
+        public async Task<IActionResult> GetAverage(int offerorId)
         {
-            var avg = await _reviewService.GetAverageRatingAsync(providerId);
+            var avg = await _reviewService.GetAverageRatingAsync(offerorId);
             return Ok(avg);
         }
 
@@ -42,6 +42,18 @@ namespace bolsafeucn_back.src.API.Controllers
         {
             await _reviewService.AddStudentReviewAsync(dto);
             return Ok("Student review added successfully");
+        }
+        [HttpPost("addOfferorReview")]
+        public async Task<IActionResult> AddOfferorReview([FromBody] ReviewForOfferorDTO dto)
+        {
+            await _reviewService.AddOfferorReviewAsync(dto);
+            return Ok("Offeror review added successfully");
+        }
+        [HttpPost("addInitialReview")]
+        public async Task<IActionResult> AddInitialReview([FromBody] InitialReviewDTO dto)
+        {
+            await _reviewService.CreateInitialReviewAsync(dto);
+            return Ok("Initial review added successfully");
         }
     }
 }

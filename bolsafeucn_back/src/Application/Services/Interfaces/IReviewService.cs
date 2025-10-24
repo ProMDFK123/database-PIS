@@ -9,8 +9,8 @@ namespace bolsafeucn_back.src.Application.Services.Interfaces
         Task AddOfferorReviewAsync(ReviewForOfferorDTO dto);
         Task BothReviewsCompletedAsync();
         Task AddReviewAsync(ReviewDTO dto);
-        Task<IEnumerable<ReviewDTO>> GetReviewsByProviderAsync(int providerId);
-        Task<double?> GetAverageRatingAsync(int providerId);
+        Task<IEnumerable<ReviewDTO>> GetReviewsByOfferorAsync(int offerorId);
+        Task<double?> GetAverageRatingAsync(int offerorId);
         Task<Review> CreateInitialReviewAsync(InitialReviewDTO dto);
     }
 }
