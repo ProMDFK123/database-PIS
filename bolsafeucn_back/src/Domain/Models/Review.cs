@@ -5,8 +5,8 @@ namespace bolsafeucn_back.src.Domain.Models
         public int Id { get; set; }
         public int? RatingForStudent { get; set; }
         public string? CommentForStudent { get; set; }
-        public int? RatingForProvider { get; set; }
-        public string? CommentForProvider { get; set; }
+        public int? RatingForOfferor { get; set; }
+        public string? CommentForOfferor { get; set; }
         public bool AtTime = false;
         public bool GoodPresentation = false;
         public required DateTime ReviewWindowEndDate { get; set; }

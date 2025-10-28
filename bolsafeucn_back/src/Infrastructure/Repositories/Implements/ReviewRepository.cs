@@ -33,7 +33,7 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Implements
             // TODO: Cambiado temporalmente a "OfferorId"
             return await _context.Reviews
                 .Where(r => r.OfferorId == offerorId)
-                .AverageAsync(r => (double?)r.RatingForProvider);
+                .AverageAsync(r => (double?)r.RatingForOfferor);
         }
 
         public async Task<Review?> GetByPublicationIdAsync(int publicationId)

@@ -16,8 +16,8 @@ namespace bolsafeucn_back.src.Application.Mappers
         }
         public static Review offerorUpdateReview(ReviewForOfferorDTO dto, Review review)
         {
-            review.RatingForProvider = dto.RatingForOfferor;
-            review.CommentForProvider = dto.CommentForOfferor;
+            review.RatingForOfferor = dto.RatingForOfferor;
+            review.CommentForOfferor = dto.CommentForOfferor;
             review.OfferorReviewCompleted = true;
             return review;
         }
@@ -42,16 +42,23 @@ namespace bolsafeucn_back.src.Application.Mappers
         //     };
         // }
 
-        // public static ReviewDTO ToDTO(Review entity)
-        // {
-        //     return new ReviewDTO
-        //     {
-        //         Rating = entity.Rating,
-        //         Comment = entity.Comment,
-        //         StudentId = entity.StudentId,
-        //         ProviderId = entity.ProviderId
-        //     };
-        // }
+        public static ReviewDTO ToDTO(Review entity)
+        {
+            return new ReviewDTO
+            {
+                idReview = entity.Id,
+                RatingForStudent = entity.RatingForStudent,
+                CommentForStudent = entity.CommentForStudent,
+                RatingForOfferor = entity.RatingForOfferor,
+                CommentForOfferor =  entity.CommentForOfferor,
+                AtTime = entity.AtTime,
+                GoodPresentation = entity.GoodPresentation,
+                ReviewWindowEndDate = entity.ReviewWindowEndDate,
+                IdUser = entity.StudentId ?? 0, // TODO: Revisar bien esto.
+                IdUser2 = entity.OfferorId ?? 0,
+                IdPublication = entity.PublicationId
+            };
+        }
     }
 }
 

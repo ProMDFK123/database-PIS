@@ -24,10 +24,8 @@ namespace bolsafeucn_back.src.Application.Services.Implements
 
         public async Task<IEnumerable<ReviewDTO>> GetReviewsByOfferorAsync(int offerorId)
         {
-            // TODO: Arreglar esto
-            return null;
-            // var reviews = await _repository.GetByOfferorIdAsync(offerorId);
-            // return reviews.Select(ReviewMapper.ToDTO);
+            var reviews = await _repository.GetByOfferorIdAsync(offerorId);
+            return reviews.Select(ReviewMapper.ToDTO);
         }
 
         public async Task<double?> GetAverageRatingAsync(int offerorId)
@@ -65,6 +63,12 @@ namespace bolsafeucn_back.src.Application.Services.Implements
 
         public async Task<Review> CreateInitialReviewAsync(InitialReviewDTO dto)
         {
+            // Validar que no exista ya una review para esta publicación
+            var existingReview = await _repository.GetByPublicationIdAsync(dto.PublicationId);
+            if (existingReview != null)
+            {
+                throw new InvalidOperationException($"Ya existe una review para la publicación con ID {dto.PublicationId}.");
+            }
             var review = ReviewMapper.CreateInitialReviewAsync(dto);
             await _repository.AddAsync(review);
             return review;

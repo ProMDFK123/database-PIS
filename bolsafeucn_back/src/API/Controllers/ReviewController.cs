@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace bolsafeucn_back.src.API.Controllers
 {
     [ApiController]
-    [Route("api/reviews/[action]")] // [action] es el nombre de la funcion.
+    [Route("reviews/[action]")] // [action] es el nombre de la funcion.
     public class ReviewController : ControllerBase
     {
         private readonly IReviewService _reviewService;
@@ -49,7 +49,7 @@ namespace bolsafeucn_back.src.API.Controllers
             await _reviewService.AddOfferorReviewAsync(dto);
             return Ok("Offeror review added successfully");
         }
-        [HttpPost("addInitialReview")]
+        [HttpPost]
         public async Task<IActionResult> AddInitialReview([FromBody] InitialReviewDTO dto)
         {
             await _reviewService.CreateInitialReviewAsync(dto);
