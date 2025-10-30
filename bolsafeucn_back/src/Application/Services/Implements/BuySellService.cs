@@ -1,3 +1,4 @@
+using Bogus.Bson;
 using bolsafeucn_back.src.Application.DTOs.PublicationDTO;
 using bolsafeucn_back.src.Application.Services.Interfaces;
 using bolsafeucn_back.src.Infrastructure.Repositories.Interfaces;
@@ -118,6 +119,22 @@ namespace bolsafeucn_back.src.Application.Services.Implements
                 UserName = bs.User.UserName ?? "Usuario",
             }).ToList();
             _logger.LogInformation("Publicaciones de compra/venta pendientes obtenidas exitosamente");
+            return result;
+        }
+
+        public async Task<IEnumerable<BuySellBasicAdminDto>> GetPublishedBuysellsAsync()
+        {
+            _logger.LogInformation("Obteniendo publicaciones de compra/venta ya publicadas");
+            var buysell = await _buySellRepository.GetPublishedBuySellsAsync();
+            var result = buysell.Select(bs => new BuySellBasicAdminDto
+            {
+                Title = bs.Title,
+                NameOwner = bs.User.UserName ?? "Usuario",
+                PublicationDate = bs.PublicationDate,
+                Type = bs.Type,
+                Activa = bs.IsActive
+            }).ToList();
+            _logger.LogInformation("Publicaciones de compra/venta publicadas obtenidas exitosamente");
             return result;
         }
     }

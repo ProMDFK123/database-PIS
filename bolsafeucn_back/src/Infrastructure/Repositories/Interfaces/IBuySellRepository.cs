@@ -1,3 +1,4 @@
+using bolsafeucn_back.src.Application.DTOs.PublicationDTO;
 using bolsafeucn_back.src.Domain.Models;
 
 namespace bolsafeucn_back.src.Infrastructure.Repositories.Interfaces
@@ -21,6 +22,11 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Interfaces
         /// Obtiene todas las publicaciones de compra/venta pendientes de aprobación
         /// </summary>
         Task<IEnumerable<BuySell>> GetAllPendingBuySellsAsync();
+
+        /// <summary>
+        /// Obtiene todas las publicaciones de compra/venta ya publicadas
+        /// </summary>
+        Task<IEnumerable<BuySell>> GetPublishedBuySellsAsync();
 
         /// <summary>
         /// Obtiene una publicación de compra/venta por su ID

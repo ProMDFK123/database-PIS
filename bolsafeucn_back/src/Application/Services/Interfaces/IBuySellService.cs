@@ -21,5 +21,10 @@ namespace bolsafeucn_back.src.Application.Services.Interfaces
         /// Obtiene los detalles de una publicación de compra/venta específica
         /// </summary>
         Task<BuySellDetailDto?> GetBuySellDetailsAsync(int buySellId);
+
+        /// <summary>
+        /// Obtiene todas las publicaciones de compra/venta ya publicadas. 
+        /// </summary>
+        Task<IEnumerable<BuySellBasicAdminDto>> GetPublishedBuysellsAsync();
     }
 }

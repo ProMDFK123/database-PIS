@@ -414,6 +414,7 @@ namespace bolsafeucn_back.src.Application.Infrastructure.Data
                     PublicationDate = now.AddDays(-i % 3), // algunas “recientes”
                     Type = Types.Offer,
                     IsActive = true,
+                    statusValidation = StatusValidation.Published,
 
                     EndDate = s.End,
                     DeadlineDate = s.Deadline,
@@ -459,18 +460,19 @@ namespace bolsafeucn_back.src.Application.Infrastructure.Data
 
                 var bs = new BuySell
                 {
-                    UserId         = owner.Id,
-                    User           = owner,
-                    Title          = it.Title,
-                    Description    = it.Desc,
-                    PublicationDate= now.AddDays(-(i%3)),
-                    Type           = Types.BuySell,
-                    IsActive       = true,
+                    UserId = owner.Id,
+                    User = owner,
+                    Title = it.Title,
+                    Description = it.Desc,
+                    PublicationDate = now.AddDays(-(i % 3)),
+                    Type = Types.BuySell,
+                    IsActive = true,
+                    statusValidation = StatusValidation.Published,
 
-                    Price          = it.Price,
-                    Category       = it.Category,
-                    Location       = it.Loc,
-                    ContactInfo    = it.Contact
+                    Price = it.Price,
+                    Category = it.Category,
+                    Location = it.Loc,
+                    ContactInfo = it.Contact
                 };
 
                 context.BuySells.Add(bs);

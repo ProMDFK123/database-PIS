@@ -191,13 +191,32 @@ namespace bolsafeucn_back.src.API.Controllers
                 return NotFound(new GenericResponse<string>("No hay ofertas publicadas", null));
             }
             return Ok(
-                new GenericResponse<IEnumerable<OfferSummaryDto>>(
+                new GenericResponse<IEnumerable<OfferBasicAdminDto>>(
                     "Ofertas publicadas obtenidas",
                     offer
                 )
             );
         }
 
+        /// <summary>
+        /// Obtiene todas las compra y venta publicadas solo disponibles para admin
+        /// </summary>
+        [Authorize(Roles = "Admin")]
+        [HttpGet("published-buysells")]
+        public async Task<IActionResult> GetPublishedBuysellsForAdmin()
+        {
+            var buysell = await _buySellService.GetPublishedBuysellsAsync();
+            if (buysell == null)
+            {
+                return NotFound(new GenericResponse<string>("no hay compra y ventas publicadas", null));
+            }
+            return Ok(
+                new GenericResponse<IEnumerable<BuySellBasicAdminDto>>(
+                    "Compra y ventas publicadas obtenidas",
+                    buysell
+                )
+            );
+        }
 
         #endregion
 

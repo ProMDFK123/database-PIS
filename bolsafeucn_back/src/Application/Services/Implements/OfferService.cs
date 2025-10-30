@@ -155,7 +155,7 @@ public class OfferService : IOfferService
         return result;
     }
 
-    public async Task<IEnumerable<OfferSummaryDto>> GetPublishedOffersAsync()
+    public async Task<IEnumerable<OfferBasicAdminDto>> GetPublishedOffersAsync()
     {
         var offer = await _offerRepository.PublishedOffersAsync();
         var list = offer.ToList();
@@ -167,17 +167,13 @@ public class OfferService : IOfferService
                     : o.User?.UserType == UserType.Particular
                         ? $"{(o.User.Individual?.Name ?? "").Trim()} {(o.User.Individual?.LastName ?? "").Trim()}".Trim()
                     : (o.User?.UserName ?? "UCN");
-                return new OfferSummaryDto
+                return new OfferBasicAdminDto
                 {
-                    Id = o.Id,
                     Title = o.Title,
                     CompanyName = ownerName,
-                    OwnerName = ownerName,
-                    Location = "Campus Antofagasta",
-                    Remuneration = o.Remuneration,
-                    DeadlineDate = o.DeadlineDate,
                     PublicationDate = o.PublicationDate,
                     OfferType = o.OfferType,
+                    Activa = o.IsActive
                 };
             })
             .ToList();
