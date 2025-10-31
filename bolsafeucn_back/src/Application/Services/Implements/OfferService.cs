@@ -5,6 +5,7 @@ using bolsafeucn_back.src.Infrastructure.Data;
 using bolsafeucn_back.src.Infrastructure.Repositories.Interfaces;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 namespace bolsafeucn_back.src.Application.Services.Implements;
 
@@ -177,6 +178,37 @@ public class OfferService : IOfferService
                 };
             })
             .ToList();
+        return result;
+    }
+
+    public async Task<OfferDetailsAdminDto> GetOfferDetailsForAdminManagement(int offerId)
+    {
+        _logger.LogInformation("Obteniendo detalles de la oferta ID: {OfferId}", offerId);
+        var offer = await _offerRepository.GetByIdAsync(offerId);
+        if (offer == null)
+        {
+            _logger.LogWarning("Oferta con ID {OfferId} no encontrada", offerId);
+            throw new KeyNotFoundException($"Offer with id {offerId} not found");
+        }
+        var ownerName =
+            offer.User?.UserType == UserType.Empresa
+                ? (offer.User.Company?.CompanyName ?? "Empresa desconocida")
+            : offer.User?.UserType == UserType.Particular
+                ? $"{(offer.User.Individual?.Name ?? "").Trim()} {(offer.User.Individual?.LastName ?? "").Trim()}".Trim()
+            : (offer.User?.UserName ?? "UCN");
+        var imageForDTO = offer.Images.Select(i => i.Url).ToList();
+        var result = new OfferDetailsAdminDto
+        {
+            Title = offer.Title,
+            Description = offer.Description,
+            Images = imageForDTO,
+            CompanyName = ownerName,
+            PublicationDate = offer.PublicationDate,
+            Type = offer.Type,
+            Active = offer.IsActive,
+            statusValidation = offer.statusValidation
+        };
+        _logger.LogInformation("Detalles de oferta ID: {OfferId} obtenidos exitosamente", offerId);
         return result;
     }
 }

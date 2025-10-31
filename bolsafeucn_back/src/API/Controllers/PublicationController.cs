@@ -220,6 +220,25 @@ namespace bolsafeucn_back.src.API.Controllers
 
         #endregion
 
+        #region Administrar ofertas y compra/venta (admin)
+
+        /// <summary>
+        /// Obtiene los detalles de una oferta para la administracion de esta
+        /// </summary>
+        [Authorize(Roles = "Admin")]
+        [HttpGet("offers-admin/{offerId}")]
+        public async Task<IActionResult> GetOfferDetailsForAdmin(int offerId)
+        {
+            var offer = await _offerService.GetOfferDetailsForAdminManagement(offerId);
+            if (offer == null)
+            {
+                return NotFound(new GenericResponse<object>("No se encontro la oferta", null));
+            }
+            return Ok(new GenericResponse<OfferDetailsAdminDto>("Informacion basica de oferta recibida con exito.", offer));
+        }
+
+        #endregion
+
         #region Validar ofertas (admin)
 
         /// <summary>
