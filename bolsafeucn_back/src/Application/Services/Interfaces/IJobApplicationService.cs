@@ -41,5 +41,10 @@ namespace bolsafeucn_back.src.Application.Services.Interfaces
         /// Muestra una lista de los postulantes a una cierta oferta
         /// </summary>
         Task<IEnumerable<ViewApplicantsDto>> GetApplicantsForAdminManagement(int offerId);
+
+        /// <summary>
+        /// Obtiene los detalles de un postulante que postula a una oferta de trabajo
+        /// </summary>
+        Task<ViewApplicantDetailAdminDto> GetApplicantDetailForAdmin(int studentId);
     }
 }

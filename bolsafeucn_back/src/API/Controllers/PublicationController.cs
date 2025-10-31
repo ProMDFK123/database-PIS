@@ -252,6 +252,21 @@ namespace bolsafeucn_back.src.API.Controllers
             return Ok(new GenericResponse<IEnumerable<ViewApplicantsDto>>("Lista de postulantes recibida exitosamente.", applicants));
         }
 
+        /// <summary>
+        /// Obtiene los detalles de un postulante inscrito a una oferta de trabajo
+        /// </summary>
+        [Authorize(Roles = "Admin")]
+        [HttpGet("view-applicants-details-admin/{studentId}")]
+        public async Task<IActionResult> ViewApplicantDetailsForAdmin(int studentId)
+        {
+            var applicantDetail = await _jobApplicationService.GetApplicantDetailForAdmin(studentId);
+            if (applicantDetail == null)
+            {
+                return NotFound(new GenericResponse<object>("No se encontro al postulante", null));
+            }
+            return Ok(new GenericResponse<ViewApplicantDetailAdminDto>("Informacion basica de oferta recibida con exito.", applicantDetail));
+        }
+
         #endregion
 
         #region Validar ofertas (admin)

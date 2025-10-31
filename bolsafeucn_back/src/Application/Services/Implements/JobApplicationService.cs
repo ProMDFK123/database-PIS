@@ -2,6 +2,7 @@ using bolsafeucn_back.src.Application.DTOs.JobAplicationDTO;
 using bolsafeucn_back.src.Application.Services.Interfaces;
 using bolsafeucn_back.src.Domain.Models;
 using bolsafeucn_back.src.Infrastructure.Repositories.Interfaces;
+using CloudinaryDotNet.Actions;
 
 namespace bolsafeucn_back.src.Application.Services.Implements
 {
@@ -243,6 +244,19 @@ namespace bolsafeucn_back.src.Application.Services.Implements
                 Applicant = $"{app.Student.Student?.Name} {app.Student.Student?.LastName}",
                 Status = app.Status
             }).ToList();
+        }
+
+        public async Task<ViewApplicantDetailAdminDto> GetApplicantDetailForAdmin(int studentId)
+        {
+            var applicant = await _jobApplicationRepository.GetByIdAsync(studentId);
+            return new ViewApplicantDetailAdminDto
+            {
+                StudentName = $"{applicant.Student.Student?.Name} {applicant.Student.Student?.LastName}",
+                Email = applicant.Student.Email,
+                PhoneNumber = applicant.Student.PhoneNumber,
+                Status = applicant.Status
+                // TODO: falta descripcion
+            };
         }
     }
 }
