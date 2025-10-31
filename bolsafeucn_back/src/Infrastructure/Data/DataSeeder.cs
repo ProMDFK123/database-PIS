@@ -64,6 +64,12 @@ namespace bolsafeucn_back.src.Application.Infrastructure.Data
                     await SeedBuySells(context);
                     Log.Information("DataSeeder: Compra/venta de prueba creados.");
                 }
+                if (!await context.JobApplications.AnyAsync())
+                {
+                    Log.Information("DataSeeder: No se encontraron postulaciones, creando postulaciones de prueba...");
+                    await SeedJobApplications(context);
+                    Log.Information("DataSeeder: Postulaciones de prueba creadas exitosamente.");
+                }
             }
             catch (Exception ex)
             {
@@ -481,6 +487,45 @@ namespace bolsafeucn_back.src.Application.Infrastructure.Data
             await context.SaveChangesAsync();
             Log.Information("DataSeeder: BuySell de ejemplo cargados ({Count})", items.Length);
         }
-        
+        private static async Task SeedJobApplications(AppDbContext context)
+        {
+            var studentUser = await context.Users.FirstOrDefaultAsync(u => u.Email == "estudiante@alumnos.ucn.cl");
+            var offers = await context.Offers.ToListAsync();
+            if (studentUser == null || offers.Count < 3) return;
+            var studentId = studentUser.Id;
+            var applications = new List<JobApplication>
+            {
+                new JobApplication
+                {
+                    StudentId = studentId,
+                    Student = studentUser,
+                    JobOfferId = offers[0].Id,
+                    JobOffer = offers[0],
+                    Status = "Pendiente",
+                    ApplicationDate = DateTime.UtcNow.AddDays(-5),
+                },
+                new JobApplication
+                {
+                    StudentId = studentId,
+                    Student = studentUser,
+                    JobOfferId = offers[1].Id,
+                    JobOffer = offers[1],
+                    Status = "Seleccionado",
+                    ApplicationDate = DateTime.UtcNow.AddDays(-3),
+                },
+                new JobApplication
+                {
+                    StudentId = studentId,
+                    Student = studentUser,
+                    JobOfferId = offers[2].Id,
+                    JobOffer = offers[2],
+                    Status = "No seleccionado",
+                    ApplicationDate = DateTime.UtcNow.AddDays(-1),
+                },
+            };
+            await context.JobApplications.AddRangeAsync(applications);
+            await context.SaveChangesAsync();
+            Log.Information("DataSeeder: Postulaciones de prueba cargadas ({Count})", applications.Count);
+        }
     }
 }

@@ -36,5 +36,10 @@ namespace bolsafeucn_back.src.Application.Services.Interfaces
         /// Valida si un estudiante es elegible para postular
         /// </summary>
         Task<bool> ValidateStudentEligibilityAsync(int studentId, bool isCvRequired = true);
+
+        /// <summary>
+        /// Muestra una lista de los postulantes a una cierta oferta
+        /// </summary>
+        Task<IEnumerable<ViewApplicantsDto>> GetApplicantsForAdminManagement(int offerId);
     }
 }

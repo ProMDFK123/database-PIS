@@ -234,5 +234,15 @@ namespace bolsafeucn_back.src.Application.Services.Implements
 
             return true;
         }
+
+        public async Task<IEnumerable<ViewApplicantsDto>> GetApplicantsForAdminManagement(int offerId)
+        {
+            var applicant = await _jobApplicationRepository.GetByOfferIdAsync(offerId);
+            return applicant.Select(app => new ViewApplicantsDto
+            {
+                Applicant = $"{app.Student.Student?.Name} {app.Student.Student?.LastName}",
+                Status = app.Status
+            }).ToList();
+        }
     }
 }
