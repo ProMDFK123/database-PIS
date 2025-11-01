@@ -13,6 +13,7 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Interfaces
         Task<bool> CreateCompanyAsync(Company company);
         Task<bool> CreateAdminAsync(Admin admin, bool superAdmin);
         Task<bool> CheckPasswordAsync(GeneralUser user, string password);
+        Task<bool> UpdatePasswordAsync(GeneralUser user, string newPassword);
         Task<string> GetRoleAsync(GeneralUser user);
         Task<GeneralUser> GetGeneralUserByIdAsync(int id);
         Task<IEnumerable<GeneralUser>> GetAllAsync();

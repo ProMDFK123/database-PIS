@@ -1,9 +1,12 @@
 using bolsafe_ucn.src.Application.Services.Interfaces;
 using bolsafeucn_back.src.Application.DTOs.AuthDTOs;
+using bolsafeucn_back.src.Application.DTOs.AuthDTOs.ResetPasswordDTOs;
 using bolsafeucn_back.src.Application.Services.Interfaces;
 using bolsafeucn_back.src.Domain.Models;
 using bolsafeucn_back.src.Infrastructure.Repositories.Interfaces;
 using Mapster;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Serilog;
 
 namespace bolsafeucn_back.src.Application.Services.Implements
 {
@@ -13,21 +16,18 @@ namespace bolsafeucn_back.src.Application.Services.Implements
         private readonly IEmailService _emailService;
         private readonly ITokenService _tokenService;
         private readonly IVerificationCodeRepository _verificationCodeRepository;
-        private readonly ILogger<UserService> _logger;
 
         public UserService(
             IUserRepository userRepository,
             IVerificationCodeRepository verificationCodeRepository,
             IEmailService emailService,
-            ITokenService tokenService,
-            ILogger<UserService> logger
+            ITokenService tokenService
         )
         {
             _userRepository = userRepository;
             _emailService = emailService;
             _verificationCodeRepository = verificationCodeRepository;
             _tokenService = tokenService;
-            _logger = logger;
         }
 
         /// <summary>
@@ -41,7 +41,7 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             HttpContext httpContext
         )
         {
-            _logger.LogInformation(
+            Log.Information(
                 "Iniciando registro de estudiante con email: {Email}",
                 registerStudentDTO.Email
             );
@@ -49,20 +49,17 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             bool registrado = await _userRepository.ExistsByEmailAsync(registerStudentDTO.Email);
             if (registrado)
             {
-                _logger.LogWarning(
+                Log.Warning(
                     "Intento de registro con email duplicado: {Email}",
                     registerStudentDTO.Email
                 );
-                throw new Exception("El correo electrónico ya está en uso.");
+                throw new InvalidOperationException("El correo electrónico ya está en uso.");
             }
             registrado = await _userRepository.ExistsByRutAsync(registerStudentDTO.Rut);
             if (registrado)
             {
-                _logger.LogWarning(
-                    "Intento de registro con RUT duplicado: {Rut}",
-                    registerStudentDTO.Rut
-                );
-                throw new Exception("El RUT ya está en uso.");
+                Log.Warning("Intento de registro con RUT duplicado: {Rut}", registerStudentDTO.Rut);
+                throw new InvalidOperationException("El RUT ya está en uso.");
             }
             var user = registerStudentDTO.Adapt<GeneralUser>();
             user.PhoneNumber = NormalizePhoneNumber(registerStudentDTO.PhoneNumber);
@@ -73,7 +70,7 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             );
             if (result == false)
             {
-                _logger.LogError(
+                Log.Error(
                     "Error al crear usuario estudiante con email: {Email}",
                     registerStudentDTO.Email
                 );
@@ -84,10 +81,7 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             result = await _userRepository.CreateStudentAsync(student);
             if (!result)
             {
-                _logger.LogError(
-                    "Error al crear perfil de estudiante para usuario ID: {UserId}",
-                    user.Id
-                );
+                Log.Error("Error al crear perfil de estudiante para usuario ID: {UserId}", user.Id);
                 throw new Exception("Error al crear el estudiante.");
             }
             //Envio email de verificacion
@@ -102,16 +96,16 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             var newCode = await _verificationCodeRepository.CreateCodeAsync(verificationCode);
             if (newCode == null)
             {
-                _logger.LogError(
+                Log.Error(
                     "Error al crear código de verificación para usuario ID: {UserId}",
                     user.Id
                 );
                 throw new Exception("Error al crear el código de verificación.");
             }
 
-            _logger.LogInformation("Enviando email de verificación a: {Email}", user.Email);
+            Log.Information("Enviando email de verificación a: {Email}", user.Email);
             await _emailService.SendVerificationEmailAsync(user.Email!, newCode.Code);
-            _logger.LogInformation(
+            Log.Information(
                 "Estudiante registrado exitosamente con ID: {UserId}, Email: {Email}",
                 user.Id,
                 user.Email
@@ -130,7 +124,7 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             HttpContext httpContext
         )
         {
-            _logger.LogInformation(
+            Log.Information(
                 "Iniciando registro de particular con email: {Email}",
                 registerIndividualDTO.Email
             );
@@ -138,20 +132,20 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             bool registrado = await _userRepository.ExistsByEmailAsync(registerIndividualDTO.Email);
             if (registrado)
             {
-                _logger.LogWarning(
+                Log.Warning(
                     "Intento de registro particular con email duplicado: {Email}",
                     registerIndividualDTO.Email
                 );
-                throw new Exception("El correo electrónico ya está en uso.");
+                throw new InvalidOperationException("El correo electrónico ya está en uso.");
             }
             registrado = await _userRepository.ExistsByRutAsync(registerIndividualDTO.Rut);
             if (registrado)
             {
-                _logger.LogWarning(
+                Log.Warning(
                     "Intento de registro particular con RUT duplicado: {Rut}",
                     registerIndividualDTO.Rut
                 );
-                throw new Exception("El RUT ya está en uso.");
+                throw new InvalidOperationException("El RUT ya está en uso.");
             }
             var user = registerIndividualDTO.Adapt<GeneralUser>();
             user.PhoneNumber = NormalizePhoneNumber(registerIndividualDTO.PhoneNumber);
@@ -162,7 +156,7 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             );
             if (!result)
             {
-                _logger.LogError(
+                Log.Error(
                     "Error al crear usuario particular con email: {Email}",
                     registerIndividualDTO.Email
                 );
@@ -173,10 +167,7 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             result = await _userRepository.CreateIndividualAsync(individual);
             if (!result)
             {
-                _logger.LogError(
-                    "Error al crear perfil de particular para usuario ID: {UserId}",
-                    user.Id
-                );
+                Log.Error("Error al crear perfil de particular para usuario ID: {UserId}", user.Id);
                 throw new Exception("Error al crear el particular.");
             }
             //Envio email de verificacion
@@ -191,16 +182,16 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             var newCode = await _verificationCodeRepository.CreateCodeAsync(verificationCode);
             if (newCode == null)
             {
-                _logger.LogError(
+                Log.Error(
                     "Error al crear código de verificación para usuario ID: {UserId}",
                     user.Id
                 );
                 throw new Exception("Error al crear el código de verificación.");
             }
 
-            _logger.LogInformation("Enviando email de verificación a: {Email}", user.Email);
+            Log.Information("Enviando email de verificación a: {Email}", user.Email);
             await _emailService.SendVerificationEmailAsync(user.Email!, newCode.Code);
-            _logger.LogInformation(
+            Log.Information(
                 "Particular registrado exitosamente con ID: {UserId}, Email: {Email}",
                 user.Id,
                 user.Email
@@ -219,7 +210,7 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             HttpContext httpContext
         )
         {
-            _logger.LogInformation(
+            Log.Information(
                 "Iniciando registro de empresa con email: {Email}",
                 registerCompanyDTO.Email
             );
@@ -227,20 +218,20 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             bool registrado = await _userRepository.ExistsByEmailAsync(registerCompanyDTO.Email);
             if (registrado)
             {
-                _logger.LogWarning(
+                Log.Warning(
                     "Intento de registro de empresa con email duplicado: {Email}",
                     registerCompanyDTO.Email
                 );
-                throw new Exception("El correo electrónico ya está en uso.");
+                throw new InvalidOperationException("El correo electrónico ya está en uso.");
             }
             registrado = await _userRepository.ExistsByRutAsync(registerCompanyDTO.Rut);
             if (registrado)
             {
-                _logger.LogWarning(
+                Log.Warning(
                     "Intento de registro de empresa con RUT duplicado: {Rut}",
                     registerCompanyDTO.Rut
                 );
-                throw new Exception("El RUT ya está en uso.");
+                throw new InvalidOperationException("El RUT ya está en uso.");
             }
             var user = registerCompanyDTO.Adapt<GeneralUser>();
             user.PhoneNumber = NormalizePhoneNumber(registerCompanyDTO.PhoneNumber);
@@ -251,7 +242,7 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             );
             if (!result)
             {
-                _logger.LogError(
+                Log.Error(
                     "Error al crear usuario empresa con email: {Email}",
                     registerCompanyDTO.Email
                 );
@@ -262,10 +253,7 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             result = await _userRepository.CreateCompanyAsync(company);
             if (!result)
             {
-                _logger.LogError(
-                    "Error al crear perfil de empresa para usuario ID: {UserId}",
-                    user.Id
-                );
+                Log.Error("Error al crear perfil de empresa para usuario ID: {UserId}", user.Id);
                 throw new Exception("Error al crear la empresa.");
             }
             //Envio email de verificacion
@@ -280,16 +268,16 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             var newCode = await _verificationCodeRepository.CreateCodeAsync(verificationCode);
             if (newCode == null)
             {
-                _logger.LogError(
+                Log.Error(
                     "Error al crear código de verificación para usuario ID: {UserId}",
                     user.Id
                 );
                 throw new Exception("Error al crear el código de verificación.");
             }
 
-            _logger.LogInformation("Enviando email de verificación a: {Email}", user.Email);
+            Log.Information("Enviando email de verificación a: {Email}", user.Email);
             await _emailService.SendVerificationEmailAsync(user.Email!, newCode.Code);
-            _logger.LogInformation(
+            Log.Information(
                 "Empresa registrada exitosamente con ID: {UserId}, Email: {Email}",
                 user.Id,
                 user.Email
@@ -308,7 +296,7 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             HttpContext httpContext
         )
         {
-            _logger.LogInformation(
+            Log.Information(
                 "Iniciando registro de admin con email: {Email}, SuperAdmin: {SuperAdmin}",
                 registerAdminDTO.Email,
                 registerAdminDTO.SuperAdmin
@@ -317,20 +305,20 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             bool registrado = await _userRepository.ExistsByEmailAsync(registerAdminDTO.Email);
             if (registrado)
             {
-                _logger.LogWarning(
+                Log.Warning(
                     "Intento de registro de admin con email duplicado: {Email}",
                     registerAdminDTO.Email
                 );
-                throw new Exception("El correo electrónico ya está en uso.");
+                throw new InvalidOperationException("El correo electrónico ya está en uso.");
             }
             registrado = await _userRepository.ExistsByRutAsync(registerAdminDTO.Rut);
             if (registrado)
             {
-                _logger.LogWarning(
+                Log.Warning(
                     "Intento de registro de admin con RUT duplicado: {Rut}",
                     registerAdminDTO.Rut
                 );
-                throw new Exception("El RUT ya está en uso.");
+                throw new InvalidOperationException("El RUT ya está en uso.");
             }
             var user = registerAdminDTO.Adapt<GeneralUser>();
             user.PhoneNumber = NormalizePhoneNumber(registerAdminDTO.PhoneNumber);
@@ -346,7 +334,7 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             );
             if (!result)
             {
-                _logger.LogError(
+                Log.Error(
                     "Error al crear usuario admin con email: {Email}",
                     registerAdminDTO.Email
                 );
@@ -357,10 +345,7 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             result = await _userRepository.CreateAdminAsync(admin, registerAdminDTO.SuperAdmin);
             if (!result)
             {
-                _logger.LogError(
-                    "Error al crear perfil de admin para usuario ID: {UserId}",
-                    user.Id
-                );
+                Log.Error("Error al crear perfil de admin para usuario ID: {UserId}", user.Id);
                 throw new Exception("Error al crear el administrador.");
             }
             //Envio email de verificacion
@@ -375,16 +360,16 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             var newCode = await _verificationCodeRepository.CreateCodeAsync(verificationCode);
             if (newCode == null)
             {
-                _logger.LogError(
+                Log.Error(
                     "Error al crear código de verificación para usuario ID: {UserId}",
                     user.Id
                 );
                 throw new Exception("Error al crear el código de verificación.");
             }
 
-            _logger.LogInformation("Enviando email de verificación a: {Email}", user.Email);
+            Log.Information("Enviando email de verificación a: {Email}", user.Email);
             await _emailService.SendVerificationEmailAsync(user.Email!, newCode.Code);
-            _logger.LogInformation(
+            Log.Information(
                 "Admin registrado exitosamente con ID: {UserId}, Email: {Email}, Rol: {Role}",
                 user.Id,
                 user.Email,
@@ -404,20 +389,20 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             HttpContext httpContext
         )
         {
-            _logger.LogInformation("Intentando verificar email: {Email}", verifyEmailDTO.Email);
+            Log.Information("Intentando verificar email: {Email}", verifyEmailDTO.Email);
 
             var user = await _userRepository.GetByEmailAsync(verifyEmailDTO.Email);
             if (user == null)
             {
-                _logger.LogWarning(
+                Log.Warning(
                     "Intento de verificación para email no existente: {Email}",
                     verifyEmailDTO.Email
                 );
-                throw new Exception("El usuario no existe.");
+                throw new KeyNotFoundException("El usuario no existe.");
             }
             if (user.EmailConfirmed)
             {
-                _logger.LogInformation("Email ya verificado: {Email}", verifyEmailDTO.Email);
+                Log.Information("Email ya verificado: {Email}", verifyEmailDTO.Email);
                 return "El correo electrónico ya ha sido verificado.";
             }
             CodeType type = CodeType.EmailConfirmation;
@@ -434,7 +419,7 @@ namespace bolsafeucn_back.src.Application.Services.Implements
                     user.Id,
                     type
                 );
-                _logger.LogWarning(
+                Log.Warning(
                     "Intento de verificación fallido para usuario ID: {UserId}, Intentos: {Attempts}",
                     user.Id,
                     attempsCountUpdated
@@ -451,7 +436,7 @@ namespace bolsafeucn_back.src.Application.Services.Implements
                         bool userDeleteResult = await _userRepository.DeleteAsync(user.Id);
                         if (userDeleteResult)
                         {
-                            _logger.LogWarning(
+                            Log.Warning(
                                 "Usuario eliminado por exceder intentos de verificación. Email: {Email}, ID: {UserId}",
                                 user.Email,
                                 user.Id
@@ -464,7 +449,7 @@ namespace bolsafeucn_back.src.Application.Services.Implements
                 }
                 if (DateTime.UtcNow >= verificationCode.Expiration)
                 {
-                    _logger.LogWarning(
+                    Log.Warning(
                         "Código de verificación expirado para usuario ID: {UserId}",
                         user.Id
                     );
@@ -486,7 +471,7 @@ namespace bolsafeucn_back.src.Application.Services.Implements
                 );
                 if (codeDeleteResult)
                 {
-                    _logger.LogInformation(
+                    Log.Information(
                         "Email verificado exitosamente para usuario ID: {UserId}, Email: {Email}",
                         user.Id,
                         user.Email
@@ -494,14 +479,88 @@ namespace bolsafeucn_back.src.Application.Services.Implements
                     await _emailService.SendWelcomeEmailAsync(user.Email!);
                     return "!Ya puedes iniciar sesión!";
                 }
-                _logger.LogError(
+                Log.Error(
                     "Error al eliminar código de verificación para usuario ID: {UserId}",
                     user.Id
                 );
                 throw new Exception("Error al confirmar el correo electrónico.");
             }
-            _logger.LogError("Error al confirmar email para usuario ID: {UserId}", user.Id);
+            Log.Error("Error al confirmar email para usuario ID: {UserId}", user.Id);
             throw new Exception("Error al verificar el correo electrónico.");
+        }
+
+        public async Task<string> ResendVerificationEmailAsync(
+            ResendVerificationDTO resendVerificationDTO,
+            HttpContext httpContext
+        )
+        {
+            Log.Information(
+                "Reenviando código de verificación al email: {Email}",
+                resendVerificationDTO.Email
+            );
+
+            var user = await _userRepository.GetByEmailAsync(resendVerificationDTO.Email);
+            if (user == null)
+            {
+                Log.Warning(
+                    "Intento de reenvío de verificación para email no existente: {Email}",
+                    resendVerificationDTO.Email
+                );
+                throw new KeyNotFoundException("El usuario no existe.");
+            }
+            if (user.EmailConfirmed)
+            {
+                Log.Information("Email ya verificado: {Email}", resendVerificationDTO.Email);
+                throw new InvalidOperationException("El correo electrónico ya ha sido verificado.");
+            }
+            var existingCode = await _verificationCodeRepository.GetByLatestUserIdAsync(
+                user.Id,
+                CodeType.EmailConfirmation
+            );
+            if (existingCode != null && DateTime.UtcNow < existingCode.Expiration)
+            {
+                Log.Information(
+                    "Código de verificación aún válido para usuario ID: {UserId}, Email: {Email}",
+                    user.Id,
+                    user.Email
+                );
+                await _emailService.SendVerificationEmailAsync(user.Email!, existingCode.Code);
+                Log.Information(
+                    "Código de verificación reenviado exitosamente para usuario ID: {UserId}, Email: {Email}",
+                    user.Id,
+                    user.Email
+                );
+                return "El código de verificación anterior aún es válido. Por favor, revisa tu correo electrónico.";
+            }
+            //Generar nuevo código
+            string newCode = new Random().Next(100000, 999999).ToString();
+            VerificationCode newVerificationCode = new VerificationCode
+            {
+                Code = newCode,
+                CodeType = CodeType.EmailConfirmation,
+                GeneralUserId = user.Id,
+                Expiration = DateTime.UtcNow.AddHours(1),
+            };
+            var createdCode = await _verificationCodeRepository.CreateCodeAsync(
+                newVerificationCode
+            );
+            if (createdCode == null)
+            {
+                Log.Error(
+                    "Error al crear código de verificación para usuario ID: {UserId}",
+                    user.Id
+                );
+                throw new InvalidOperationException("Error al crear el código de verificación.");
+            }
+
+            Log.Information("Enviando email de verificación a: {Email}", user.Email);
+            await _emailService.SendVerificationEmailAsync(user.Email!, createdCode.Code);
+            Log.Information(
+                "Código de verificación reenviado exitosamente para usuario ID: {UserId}, Email: {Email}",
+                user.Id,
+                user.Email
+            );
+            return "Código de verificación reenviado exitosamente.";
         }
 
         /// <summary>
@@ -512,46 +571,181 @@ namespace bolsafeucn_back.src.Application.Services.Implements
         /// <returns>Token de acceso</returns>
         public async Task<string> LoginAsync(LoginDTO loginDTO, HttpContext httpContext)
         {
-            _logger.LogInformation("Intento de login para email: {Email}", loginDTO.Email);
+            Log.Information("Intento de login para email: {Email}", loginDTO.Email);
 
             var user = await _userRepository.GetByEmailAsync(loginDTO.Email);
             if (user == null)
             {
-                _logger.LogWarning(
-                    "Intento de login con email no registrado: {Email}",
-                    loginDTO.Email
-                );
-                throw new Exception("Credenciales inválidas.");
+                Log.Warning("Intento de login con email no registrado: {Email}", loginDTO.Email);
+                throw new UnauthorizedAccessException("Credenciales inválidas.");
             }
             if (!user.EmailConfirmed)
             {
-                _logger.LogWarning(
+                Log.Warning(
                     "Intento de login con email no verificado: {Email}, UserId: {UserId}",
                     loginDTO.Email,
                     user.Id
                 );
-                throw new Exception(
+                throw new UnauthorizedAccessException(
                     "Por favor, verifica tu correo electrónico antes de iniciar sesión."
                 );
             }
             var result = await _userRepository.CheckPasswordAsync(user, loginDTO.Password);
             if (!result)
             {
-                _logger.LogWarning(
+                Log.Warning(
                     "Intento de login con contraseña incorrecta para usuario: {Email}, UserId: {UserId}",
                     loginDTO.Email,
                     user.Id
                 );
-                throw new Exception("Credenciales inválidas.");
+                throw new UnauthorizedAccessException("Credenciales inválidas.");
             }
             var role = await _userRepository.GetRoleAsync(user);
-            _logger.LogInformation(
+            Log.Information(
                 "Login exitoso para usuario: {Email}, UserId: {UserId}, Role: {Role}",
                 loginDTO.Email,
                 user.Id,
                 role
             );
             return _tokenService.CreateToken(user, role, loginDTO.RememberMe);
+        }
+
+        public async Task<string> SendResetPasswordVerificationCodeEmailAsync(
+            RequestResetPasswordCodeDTO requestResetPasswordCodeDTO,
+            HttpContext httpContext
+        )
+        {
+            Log.Information(
+                "Enviando código de verificación de reseteo de contraseña al email: {Email}",
+                requestResetPasswordCodeDTO.Email
+            );
+            var user = await _userRepository.GetByEmailAsync(requestResetPasswordCodeDTO.Email);
+            if (user == null)
+            {
+                Log.Warning(
+                    "Intento de reseteo de contraseña para email no registrado: {Email}",
+                    requestResetPasswordCodeDTO.Email
+                );
+                throw new KeyNotFoundException("El usuario no existe.");
+            }
+            string code = new Random().Next(100000, 999999).ToString();
+            VerificationCode verificationCode = new VerificationCode
+            {
+                Code = code,
+                CodeType = CodeType.PasswordReset,
+                GeneralUserId = user.Id,
+                Expiration = DateTime.UtcNow.AddHours(1),
+            };
+            var newCode = await _verificationCodeRepository.CreateCodeAsync(verificationCode);
+            if (newCode == null)
+            {
+                Log.Error(
+                    "Error al crear código de verificación de reseteo de contraseña para usuario ID: {UserId}",
+                    user.Id
+                );
+                throw new InvalidOperationException("Error al crear el código de verificación.");
+            }
+            await _emailService.SendResetPasswordVerificationEmailAsync(user.Email!, newCode.Code);
+            Log.Information(
+                "Código de verificación de reseteo de contraseña enviado exitosamente para usuario ID:{UserId}, Email: {Email}",
+                user.Id,
+                user.Email
+            );
+            return "Correo de reseteo de contraseña enviado exitosamente.";
+        }
+
+        public async Task<string> VerifyResetPasswordCodeAsync(
+            VerifyResetPasswordCodeDTO verifyResetPasswordCodeDTO,
+            HttpContext httpContext
+        )
+        {
+            Log.Information(
+                "Verificando código de reseteo de contraseña para email: {Email}",
+                verifyResetPasswordCodeDTO.Email
+            );
+            var user = await _userRepository.GetByEmailAsync(verifyResetPasswordCodeDTO.Email);
+            if (user == null)
+            {
+                Log.Warning(
+                    "Intento de verificación de código de reseteo para email no registrado: {Email}",
+                    verifyResetPasswordCodeDTO.Email
+                );
+                throw new KeyNotFoundException("El usuario no existe.");
+            }
+            if (!user.EmailConfirmed)
+            {
+                Log.Warning(
+                    "Intento de verificación de código de reseteo para email no confirmado: {Email}",
+                    verifyResetPasswordCodeDTO.Email
+                );
+                throw new InvalidOperationException("El correo electrónico no ha sido confirmado.");
+            }
+            var verificationCode = await _verificationCodeRepository.GetByLatestUserIdAsync(
+                user.Id,
+                CodeType.PasswordReset
+            );
+            if (
+                verificationCode.Code != verifyResetPasswordCodeDTO.VerificationCode
+                || DateTime.UtcNow >= verificationCode.Expiration
+            )
+            {
+                int attempsCountUpdated = await _verificationCodeRepository.IncreaseAttemptsAsync(
+                    user.Id,
+                    verificationCode.CodeType
+                );
+                Log.Warning(
+                    "Intento de verificación fallido para usuario ID: {UserId}, Intentos: {Attempts}",
+                    user.Id,
+                    attempsCountUpdated
+                );
+
+                if (attempsCountUpdated >= 5)
+                {
+                    bool codeDeleteResult = await _verificationCodeRepository.DeleteByUserIdAsync(
+                        user.Id,
+                        verificationCode.CodeType
+                    );
+                    if (codeDeleteResult)
+                    {
+                        Log.Warning(
+                            "Código de verificación eliminado por exceder intentos. Email: {Email}, ID: {UserId}",
+                            user.Email,
+                            user.Id
+                        );
+                        throw new Exception(
+                            "Se ha alcanzado el límite de intentos. El código de verificación ha sido eliminado."
+                        );
+                    }
+                }
+                if (DateTime.UtcNow >= verificationCode.Expiration)
+                {
+                    Log.Warning(
+                        "Código de verificación expirado para usuario ID: {UserId}",
+                        user.Id
+                    );
+                    throw new Exception("El código de verificación ha expirado.");
+                }
+                else
+                {
+                    throw new Exception(
+                        $"El código de verificación es incorrecto, quedan {5 - attempsCountUpdated} intentos."
+                    );
+                }
+            }
+            Log.Information(
+                "Código de verificación de reseteo de contraseña válido para usuario ID: {UserId}",
+                user.Id
+            );
+            var newPasswordResult = await _userRepository.UpdatePasswordAsync(
+                user,
+                verifyResetPasswordCodeDTO.Password
+            );
+            if (!newPasswordResult)
+            {
+                Log.Error("Error al actualizar la contraseña para usuario ID: {UserId}", user.Id);
+                throw new Exception("Error al actualizar la contraseña.");
+            }
+            return "Contraseña actualizada exitosamente.";
         }
 
         /*public async Task<IEnumerable<GeneralUser>> GetUsuariosAsync()

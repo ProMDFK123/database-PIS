@@ -3,6 +3,7 @@ using bolsafeucn_back.src.Infrastructure.Data;
 using bolsafeucn_back.src.Infrastructure.Repositories.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 
 namespace bolsafeucn_back.src.Infrastructure.Repositories.Implements
 {
@@ -10,17 +11,11 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Implements
     {
         private readonly AppDbContext _context;
         private readonly UserManager<GeneralUser> _userManager;
-        private readonly ILogger<UserRepository> _logger;
 
-        public UserRepository(
-            AppDbContext context,
-            UserManager<GeneralUser> userManager,
-            ILogger<UserRepository> logger
-        )
+        public UserRepository(AppDbContext context, UserManager<GeneralUser> userManager)
         {
             _context = context;
             _userManager = userManager;
-            _logger = logger;
         }
 
         /// <summary>
@@ -61,7 +56,7 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Implements
         /// <returns>True si se creó el usuario, de lo contrario false.</returns>
         public async Task<bool> CreateUserAsync(GeneralUser user, string password, string role)
         {
-            _logger.LogInformation(
+            Log.Information(
                 "Creando usuario en la base de datos: {Email}, Rol: {Role}",
                 user.Email,
                 role
@@ -69,7 +64,7 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Implements
             var result = await _userManager.CreateAsync(user, password);
             if (result.Succeeded)
             {
-                _logger.LogInformation(
+                Log.Information(
                     "Usuario creado exitosamente: {Email}, UserId: {UserId}",
                     user.Email,
                     user.Id
@@ -77,7 +72,7 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Implements
                 var userRole = await _userManager.AddToRoleAsync(user, role);
                 if (userRole.Succeeded)
                 {
-                    _logger.LogInformation(
+                    Log.Information(
                         "Rol {Role} asignado exitosamente a usuario ID: {UserId}",
                         role,
                         user.Id
@@ -85,7 +80,7 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Implements
                 }
                 else
                 {
-                    _logger.LogError(
+                    Log.Error(
                         "Error al asignar rol {Role} a usuario ID: {UserId}. Errores: {Errors}",
                         role,
                         user.Id,
@@ -94,7 +89,7 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Implements
                 }
                 return userRole.Succeeded;
             }
-            _logger.LogError(
+            Log.Error(
                 "Error al crear usuario {Email}. Errores: {Errors}",
                 user.Email,
                 string.Join(", ", result.Errors.Select(e => e.Description))
@@ -109,13 +104,13 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Implements
         /// <returns>True si se creó el estudiante, de lo contrario false.</returns>
         public async Task<bool> CreateStudentAsync(Student student)
         {
-            _logger.LogInformation(
+            Log.Information(
                 "Creando perfil de estudiante para usuario ID: {UserId}",
                 student.GeneralUserId
             );
             var result = await _context.Students.AddAsync(student);
             await _context.SaveChangesAsync();
-            _logger.LogInformation(
+            Log.Information(
                 "Perfil de estudiante creado exitosamente para usuario ID: {UserId}",
                 student.GeneralUserId
             );
@@ -124,13 +119,13 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Implements
 
         public async Task<bool> CreateIndividualAsync(Individual individual)
         {
-            _logger.LogInformation(
+            Log.Information(
                 "Creando perfil de particular para usuario ID: {UserId}",
                 individual.GeneralUserId
             );
             var result = await _context.Individuals.AddAsync(individual);
             await _context.SaveChangesAsync();
-            _logger.LogInformation(
+            Log.Information(
                 "Perfil de particular creado exitosamente para usuario ID: {UserId}",
                 individual.GeneralUserId
             );
@@ -144,13 +139,13 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Implements
         /// <returns>True si se creó la empresa, de lo contrario false.</returns>
         public async Task<bool> CreateCompanyAsync(Company company)
         {
-            _logger.LogInformation(
+            Log.Information(
                 "Creando perfil de empresa para usuario ID: {UserId}",
                 company.GeneralUserId
             );
             var result = await _context.Companies.AddAsync(company);
             await _context.SaveChangesAsync();
-            _logger.LogInformation(
+            Log.Information(
                 "Perfil de empresa creado exitosamente para usuario ID: {UserId}",
                 company.GeneralUserId
             );
@@ -165,14 +160,14 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Implements
         /// <returns>True si se creó el administrador, de lo contrario false.</returns>
         public async Task<bool> CreateAdminAsync(Admin admin, bool superAdmin)
         {
-            _logger.LogInformation(
+            Log.Information(
                 "Creando perfil de admin para usuario ID: {UserId}, SuperAdmin: {SuperAdmin}",
                 admin.GeneralUserId,
                 superAdmin
             );
             var result = await _context.Admins.AddAsync(admin);
             await _context.SaveChangesAsync();
-            _logger.LogInformation(
+            Log.Information(
                 "Perfil de admin creado exitosamente para usuario ID: {UserId}",
                 admin.GeneralUserId
             );
@@ -186,21 +181,18 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Implements
         /// <returns>True si se confirmó el correo electrónico, de lo contrario false.</returns>
         public async Task<bool> ConfirmEmailAsync(string email)
         {
-            _logger.LogInformation("Confirmando email en base de datos: {Email}", email);
+            Log.Information("Confirmando email en base de datos: {Email}", email);
             var result = await _context
                 .Users.Where(u => u.Email == email)
                 .ExecuteUpdateAsync(u => u.SetProperty(user => user.EmailConfirmed, true));
 
             if (result > 0)
             {
-                _logger.LogInformation(
-                    "Email confirmado exitosamente en base de datos: {Email}",
-                    email
-                );
+                Log.Information("Email confirmado exitosamente en base de datos: {Email}", email);
             }
             else
             {
-                _logger.LogWarning("No se pudo confirmar email en base de datos: {Email}", email);
+                Log.Warning("No se pudo confirmar email en base de datos: {Email}", email);
             }
             return result > 0;
         }
@@ -214,6 +206,38 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Implements
         public async Task<bool> CheckPasswordAsync(GeneralUser user, string password)
         {
             return await _userManager.CheckPasswordAsync(user, password);
+        }
+
+        public async Task<bool> UpdatePasswordAsync(GeneralUser user, string newPassword)
+        {
+            Log.Information("Actualizando contraseña para usuario ID: {UserId}", user.Id);
+            var removePasswordResult = await _userManager.RemovePasswordAsync(user);
+            if (!removePasswordResult.Succeeded)
+            {
+                Log.Error(
+                    "Error al eliminar la contraseña actual para usuario ID: {UserId}. Errores: {Errors}",
+                    user.Id,
+                    string.Join(", ", removePasswordResult.Errors.Select(e => e.Description))
+                );
+                return false;
+            }
+
+            var newPasswordResult = await _userManager.AddPasswordAsync(user, newPassword);
+            if (!newPasswordResult.Succeeded)
+            {
+                Log.Error(
+                    "Error al actualizar contraseña para usuario ID: {UserId}. Errores: {Errors}",
+                    user.Id,
+                    string.Join(", ", newPasswordResult.Errors.Select(e => e.Description))
+                );
+                return false;
+            }
+
+            Log.Information(
+                "Contraseña actualizada exitosamente para usuario ID: {UserId}",
+                user.Id
+            );
+            return newPasswordResult.Succeeded;
         }
 
         /// <summary>
@@ -264,19 +288,24 @@ namespace bolsafeucn_back.src.Infrastructure.Repositories.Implements
             return user;
         }
 
+        /// <summary>
+        /// Elimina un usuario por su ID.
+        /// </summary>
+        /// <param name="id">ID del usuario a eliminar</param>
+        /// <returns>True si se eliminó el usuario, de lo contrario false.</returns>
         public async Task<bool> DeleteAsync(int id)
         {
-            _logger.LogInformation("Intentando eliminar usuario ID: {UserId}", id);
+            Log.Information("Intentando eliminar usuario ID: {UserId}", id);
             var user = await _context.Users.FindAsync(id);
             if (user == null)
             {
-                _logger.LogWarning("Usuario ID: {UserId} no encontrado para eliminación", id);
+                Log.Warning("Usuario ID: {UserId} no encontrado para eliminación", id);
                 return false;
             }
 
             _context.Users.Remove(user);
             await _context.SaveChangesAsync();
-            _logger.LogInformation("Usuario ID: {UserId} eliminado exitosamente", id);
+            Log.Information("Usuario ID: {UserId} eliminado exitosamente", id);
             return true;
         }
     }

@@ -1,5 +1,6 @@
 using bolsafeucn_back.src.Application.Services.Interfaces;
 using Resend;
+using Serilog;
 
 namespace bolsafeucn_back.src.Application.Services.Implements
 {
@@ -8,19 +9,16 @@ namespace bolsafeucn_back.src.Application.Services.Implements
         private readonly IResend _resend;
         private readonly IConfiguration _configuration;
         private readonly IWebHostEnvironment _environment;
-        private readonly ILogger<EmailService> _logger;
 
         public EmailService(
             IResend resend,
             IConfiguration configuration,
-            IWebHostEnvironment environment,
-            ILogger<EmailService> logger
+            IWebHostEnvironment environment
         )
         {
             _resend = resend;
             _configuration = configuration;
             _environment = environment;
-            _logger = logger;
         }
 
         /// <summary>
@@ -33,10 +31,7 @@ namespace bolsafeucn_back.src.Application.Services.Implements
         {
             try
             {
-                _logger.LogInformation(
-                    "Iniciando envío de email de verificación a: {Email}",
-                    email
-                );
+                Log.Information("Iniciando envío de email de verificación a: {Email}", email);
                 var htmlBody = await LoadTemplateAsync("VerificationEmail", code);
                 var message = new EmailMessage
                 {
@@ -47,15 +42,42 @@ namespace bolsafeucn_back.src.Application.Services.Implements
                     )!,
                     HtmlBody = htmlBody,
                 };
-                await _resend.EmailSendAsync(message);
-                _logger.LogInformation(
-                    "Email de verificación enviado exitosamente a: {Email}",
-                    email
-                );
+                var result = await _resend.EmailSendAsync(message);
+                if (!result.Success)
+                {
+                    Log.Error("El envío del email de verificación falló para: {Email}", email);
+                    throw new Exception("Error al enviar el correo de verificación.");
+                }
+                Log.Information("Email de verificación enviado exitosamente a: {Email}", email);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al enviar email de verificación a: {Email}", email);
+                Log.Error(ex, "Error al enviar email de verificación a: {Email}", email);
+                throw;
+            }
+        }
+
+        public async Task SendResetPasswordVerificationEmailAsync(string email, string code)
+        {
+            try
+            {
+                Log.Information("Iniciando envío de email de verificación a: {Email}", email);
+                var htmlBody = await LoadTemplateAsync("PasswordResetEmail", code);
+                var message = new EmailMessage
+                {
+                    To = email,
+                    From = _configuration.GetValue<string>("EmailConfiguration:From")!,
+                    Subject = _configuration.GetValue<string>(
+                        "EmailConfiguration:PasswordResetSubject"
+                    )!,
+                    HtmlBody = htmlBody,
+                };
+                await _resend.EmailSendAsync(message);
+                Log.Information("Email de verificación enviado exitosamente a: {Email}", email);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error al enviar email de verificación a: {Email}", email);
                 throw;
             }
         }
@@ -69,7 +91,7 @@ namespace bolsafeucn_back.src.Application.Services.Implements
         {
             try
             {
-                _logger.LogInformation("Iniciando envío de email de bienvenida a: {Email}", email);
+                Log.Information("Iniciando envío de email de bienvenida a: {Email}", email);
                 var htmlBody = await LoadTemplateAsync("WelcomeEmail", null);
                 var message = new EmailMessage
                 {
@@ -79,14 +101,11 @@ namespace bolsafeucn_back.src.Application.Services.Implements
                     HtmlBody = htmlBody,
                 };
                 await _resend.EmailSendAsync(message);
-                _logger.LogInformation(
-                    "Email de bienvenida enviado exitosamente a: {Email}",
-                    email
-                );
+                Log.Information("Email de bienvenida enviado exitosamente a: {Email}", email);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al enviar email de bienvenida a: {Email}", email);
+                Log.Error(ex, "Error al enviar email de bienvenida a: {Email}", email);
                 throw;
             }
         }
@@ -109,7 +128,7 @@ namespace bolsafeucn_back.src.Application.Services.Implements
                     "Emails",
                     $"{templateName}.html"
                 );
-                _logger.LogDebug(
+                Log.Debug(
                     "Cargando template de email: {TemplateName} desde {Path}",
                     templateName,
                     templatePath
@@ -119,11 +138,7 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             }
             catch (Exception ex)
             {
-                _logger.LogError(
-                    ex,
-                    "Error al cargar template de email: {TemplateName}",
-                    templateName
-                );
+                Log.Error(ex, "Error al cargar template de email: {TemplateName}", templateName);
                 throw;
             }
         }
