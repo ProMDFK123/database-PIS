@@ -1,4 +1,5 @@
 using bolsafeucn_back.src.Application.DTOs.OfferDTOs;
+using bolsafeucn_back.src.Application.DTOs.PublicationDTO;
 using bolsafeucn_back.src.Application.Services.Interfaces;
 using bolsafeucn_back.src.Domain.Models;
 using bolsafeucn_back.src.Infrastructure.Data;
@@ -210,5 +211,20 @@ public class OfferService : IOfferService
         };
         _logger.LogInformation("Detalles de oferta ID: {OfferId} obtenidos exitosamente", offerId);
         return result;
+    }
+
+    public async Task GetOfferForAdminToClose(int offerId)
+    {
+        var offer = await _offerRepository.GetByIdAsync(offerId);
+        if (offer == null)
+        {
+            throw new KeyNotFoundException($"La oferta con id {offerId} no fue encontrada.");
+        }
+        if (!offer.IsActive)
+        {
+            throw new InvalidOperationException($"La oferta con id {offerId} ya ha sido cerrada.");
+        }
+        offer.IsActive = false;
+        await _offerRepository.UpdateOfferAsync(offer);
     }
 }

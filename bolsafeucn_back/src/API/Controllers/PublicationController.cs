@@ -147,7 +147,7 @@ namespace bolsafeucn_back.src.API.Controllers
         /// Obtiene todas las ofertas pendientes de validación solo disponibles para admin
         /// </summary>
         [Authorize(Roles = "Admin")]
-        [HttpGet("InProcess-offers")]
+        [HttpGet("offers/pending")]
         public async Task<IActionResult> GetPendingOffersForAdmin()
         {
             var offer = await _offerService.GetPendingOffersAsync();
@@ -167,7 +167,7 @@ namespace bolsafeucn_back.src.API.Controllers
         /// Obtiene todas las publicaciones de compra/venta pendientes de validación solo disponibles para admin
         /// </summary>
         [Authorize(Roles = "Admin")]
-        [HttpGet("InProcess-buysells")]
+        [HttpGet("buysells/pending")]
         public async Task<IActionResult> GetPendingBuySellsForAdmin()
         {
             var buySell = await _buySellService.GetAllPendingBuySellsAsync();
@@ -182,7 +182,7 @@ namespace bolsafeucn_back.src.API.Controllers
         /// Obtiene todas las ofertas publicadas solo disponibles para admin
         /// </summary>
         [Authorize(Roles = "Admin")]
-        [HttpGet("published-offers")]
+        [HttpGet("offers/published")]
         public async Task<IActionResult> GetPublishedOffersForAdmin()
         {
             var offer = await _offerService.GetPublishedOffersAsync();
@@ -202,7 +202,7 @@ namespace bolsafeucn_back.src.API.Controllers
         /// Obtiene todas las compra y venta publicadas solo disponibles para admin
         /// </summary>
         [Authorize(Roles = "Admin")]
-        [HttpGet("published-buysells")]
+        [HttpGet("buysells/published")]
         public async Task<IActionResult> GetPublishedBuysellsForAdmin()
         {
             var buysell = await _buySellService.GetPublishedBuysellsAsync();
@@ -226,7 +226,7 @@ namespace bolsafeucn_back.src.API.Controllers
         /// Obtiene los detalles de una oferta para la administracion de esta
         /// </summary>
         [Authorize(Roles = "Admin")]
-        [HttpGet("offers-admin/{offerId}")]
+        [HttpGet("offers/{offerId}/details")]
         public async Task<IActionResult> GetOfferDetailsForAdmin(int offerId)
         {
             var offer = await _offerService.GetOfferDetailsForAdminManagement(offerId);
@@ -240,8 +240,9 @@ namespace bolsafeucn_back.src.API.Controllers
         /// <summary>
         /// Obtiene una lista de todos los postulantes inscritos a una oferta de trabajo
         /// </summary>
+        /// TODO: agregar validacion cuando oferta ya fue cerrada
         [Authorize(Roles = "Admin")]
-        [HttpGet("view-applicants-admin/{offerId}")]
+        [HttpGet("offers/{offerId}/applicants")]
         public async Task<IActionResult> GetApplicantsForAdmin(int offerId)
         {
             var applicants = await _jobApplicationService.GetApplicantsForAdminManagement(offerId);
@@ -256,8 +257,8 @@ namespace bolsafeucn_back.src.API.Controllers
         /// Obtiene los detalles de un postulante inscrito a una oferta de trabajo
         /// </summary>
         [Authorize(Roles = "Admin")]
-        [HttpGet("view-applicants-details-admin/{studentId}")]
-        public async Task<IActionResult> ViewApplicantDetailsForAdmin(int studentId)
+        [HttpGet("applications/{studentId}/details")]
+        public async Task<IActionResult> GetApplicantDetailsForAdmin(int studentId)
         {
             var applicantDetail = await _jobApplicationService.GetApplicantDetailForAdmin(studentId);
             if (applicantDetail == null)
@@ -265,6 +266,33 @@ namespace bolsafeucn_back.src.API.Controllers
                 return NotFound(new GenericResponse<object>("No se encontro al postulante", null));
             }
             return Ok(new GenericResponse<ViewApplicantDetailAdminDto>("Informacion basica de oferta recibida con exito.", applicantDetail));
+        }
+
+        /// <summary>
+        /// Cierra las postulaciones de una oferta de trabajo de parte del admin
+        /// </summary>
+        [Authorize(Roles = "Admin")]
+        [HttpPatch("offers/{offerId}/close")]
+        public async Task<IActionResult> CloseOfferForAdmin(int offerId)
+        {
+            try
+            {
+                await _offerService.GetOfferForAdminToClose(offerId);
+                return Ok(new GenericResponse<object>($"Postulaciones para la oferta {offerId} cerradas con éxito por Admin.", offerId));
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound(new GenericResponse<object>("No se encontro la oferta", null));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(new GenericResponse<object>(ex.Message));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error cerrando oferta ID: {OfferId}", offerId);
+                return StatusCode(500, new GenericResponse<object>("Error interno al cerrar la oferta.", null));
+            }
         }
 
         #endregion
