@@ -175,7 +175,7 @@ namespace bolsafeucn_back.src.API.Controllers
                 return NotFound(new GenericResponse<string>("No hay ofertas pendientes", null));
             }
             return Ok(
-                new GenericResponse<IEnumerable<OfferSummaryDto>>(
+                new GenericResponse<IEnumerable<PendingOffersForAdminDto>>(
                     "Ofertas pendientes obtenidas",
                     offer
                 )
@@ -185,6 +185,7 @@ namespace bolsafeucn_back.src.API.Controllers
         /// <summary>
         /// Obtiene todas las publicaciones de compra/venta pendientes de validación solo disponibles para admin
         /// </summary>
+        /// TODO: arreglar endpoint porque entrega mas informacion de la necesaria
         [Authorize(Roles = "Admin")]
         [HttpGet("buysells/pending")]
         public async Task<IActionResult> GetPendingBuySellsForAdmin()

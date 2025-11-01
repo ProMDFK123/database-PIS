@@ -9,7 +9,7 @@ public interface IOfferService
     Task<IEnumerable<OfferSummaryDto>> GetActiveOffersAsync();
     Task PublishOfferAsync(int id);
     Task RejectOfferAsync(int id);
-    Task<IEnumerable<OfferSummaryDto>> GetPendingOffersAsync();
+    Task<IEnumerable<PendingOffersForAdminDto>> GetPendingOffersAsync();
     Task<IEnumerable<OfferBasicAdminDto>> GetPublishedOffersAsync();
     Task<OfferDetailsAdminDto> GetOfferDetailsForAdminManagement(int offerId);
     Task GetOfferForAdminToClose(int offerId);

@@ -128,33 +128,14 @@ public class OfferService : IOfferService
         await _context.SaveChangesAsync();
     }
 
-    public async Task<IEnumerable<OfferSummaryDto>> GetPendingOffersAsync()
+    public async Task<IEnumerable<PendingOffersForAdminDto>> GetPendingOffersAsync()
     {
         var offer = await _offerRepository.GetAllPendingOffersAsync();
-        var list = offer.ToList();
-        var result = list.Select(o =>
-            {
-                var ownerName =
-                    o.User?.UserType == UserType.Empresa
-                        ? (o.User.Company?.CompanyName ?? "Empresa desconocida")
-                    : o.User?.UserType == UserType.Particular
-                        ? $"{(o.User.Individual?.Name ?? "").Trim()} {(o.User.Individual?.LastName ?? "").Trim()}".Trim()
-                    : (o.User?.UserName ?? "UCN");
-                return new OfferSummaryDto
-                {
-                    Id = o.Id,
-                    Title = o.Title,
-                    CompanyName = ownerName,
-                    OwnerName = ownerName,
-                    Location = "Campus Antofagasta",
-                    Remuneration = o.Remuneration,
-                    DeadlineDate = o.DeadlineDate,
-                    PublicationDate = o.PublicationDate,
-                    OfferType = o.OfferType,
-                };
-            })
-            .ToList();
-        return result;
+        return offer.Select(o => new PendingOffersForAdminDto
+        {
+            Title = o.Title,
+            Type = o.Type
+        }).ToList();
     }
 
     public async Task<IEnumerable<OfferBasicAdminDto>> GetPublishedOffersAsync()
