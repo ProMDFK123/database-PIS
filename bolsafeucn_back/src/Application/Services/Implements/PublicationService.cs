@@ -44,6 +44,18 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             GeneralUser currentUser
         )
         {
+            if (currentUser.UserType != UserType.Empresa && currentUser.UserType != UserType.Particular && currentUser.UserType != UserType.Administrador)
+            {
+                throw new UnauthorizedAccessException("Solo usuarios tipo Empresa o Particular pueden crear ofertas.");
+            }
+            if (offerDTO.EndDate <= DateTime.UtcNow)
+            {
+                throw new InvalidOperationException("La fecha de finalización (EndDate) debe ser en el futuro.");
+            }
+            if (offerDTO.DeadlineDate >= offerDTO.EndDate)
+            {
+                throw new InvalidOperationException("La fecha límite de postulación (DeadlineDate) debe ser anterior a la fecha de finalización de la oferta.");
+            }
             try
             {
                 var offer = new Offer
@@ -62,7 +74,8 @@ namespace bolsafeucn_back.src.Application.Services.Implements
                     UserId = currentUser.Id,
                     User = currentUser,
                     Type = Types.Offer,
-                    IsActive = true,
+                    statusValidation = StatusValidation.InProcess,
+                    IsActive = false
                 };
 
                 var createdOffer = await _offerRepository.CreateOfferAsync(offer);
@@ -98,6 +111,10 @@ namespace bolsafeucn_back.src.Application.Services.Implements
             GeneralUser currentUser
         )
         {
+            if (currentUser.UserType != UserType.Empresa && currentUser.UserType != UserType.Particular && currentUser.UserType != UserType.Administrador)
+            {
+                throw new UnauthorizedAccessException("Solo usuarios tipo Empresa o Particular pueden crear publicaciones de compra/venta.");
+            }
             try
             {
                 var buySell = new BuySell
@@ -112,7 +129,8 @@ namespace bolsafeucn_back.src.Application.Services.Implements
                     Location = buySellDTO.Location,
                     ContactInfo = buySellDTO.ContactInfo,
                     PublicationDate = DateTime.UtcNow,
-                    IsActive = true,
+                    statusValidation = StatusValidation.InProcess,
+                    IsActive = false,
                 };
 
                 var createdBuySell = await _buySellRepository.CreateBuySellAsync(buySell);

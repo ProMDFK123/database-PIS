@@ -79,15 +79,26 @@ namespace bolsafeucn_back.src.API.Controllers
             }
 
             _logger.LogInformation("Usuario {UserId} creando oferta: {Title}", userId, dto.Title);
-            var response = await _publicationService.CreateOfferAsync(dto, currentUser);
-
-            if (response == null)
+            try
             {
-                _logger.LogError("Error al crear oferta para usuario {UserId}", userId);
-                return BadRequest(new GenericResponse<object>("Error al crear la oferta"));
+                var response = await _publicationService.CreateOfferAsync(dto, currentUser);
+                return Ok(response);
             }
-
-            return Ok(response);
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogWarning(ex, "Intento de publicación sin rol autorizado.");
+                return StatusCode(403, new GenericResponse<object>(ex.Message));
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "Validación de negocio fallida.");
+                return BadRequest(new GenericResponse<object>(ex.Message));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error interno al crear publicación de oferta.");
+                return StatusCode(500, new GenericResponse<object>("Error interno al crear la publicación."));
+            }
         }
 
         /// <summary>
@@ -125,18 +136,26 @@ namespace bolsafeucn_back.src.API.Controllers
                 userId,
                 dto.Title
             );
-            var response = await _publicationService.CreateBuySellAsync(dto, currentUser);
-
-            if (response == null)
+            try
             {
-                _logger.LogError(
-                    "Error al crear publicación de compra/venta para usuario {UserId}",
-                    userId
-                );
-                return BadRequest(new GenericResponse<object>("Error al crear la publicación"));
+                var response = await _publicationService.CreateBuySellAsync(dto, currentUser);
+                return Ok(response);
             }
-
-            return Ok(response);
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogWarning(ex, "Intento de publicación sin rol autorizado.");
+                return StatusCode(403, new GenericResponse<object>(ex.Message));
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "Validación de negocio fallida.");
+                return BadRequest(new GenericResponse<object>(ex.Message));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error interno al crear publicación de compra/venta.");
+                return StatusCode(500, new GenericResponse<object>("Error interno al crear la publicación."));
+            }
         }
 
         #endregion
@@ -294,6 +313,11 @@ namespace bolsafeucn_back.src.API.Controllers
                 return StatusCode(500, new GenericResponse<object>("Error interno al cerrar la oferta.", null));
             }
         }
+
+        /// <summary>
+        /// Elimina la oferta de trabajo de parte del admin
+        /// </summary>
+        /// TODO: agregar endpoint proximamente para siguiente iteracion
 
         #endregion
 
