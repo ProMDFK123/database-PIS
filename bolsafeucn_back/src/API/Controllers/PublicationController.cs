@@ -1,10 +1,14 @@
 using System.Security.Claims;
 using bolsafeucn_back.src.Application.DTOs.BaseResponse;
 using bolsafeucn_back.src.Application.DTOs.JobAplicationDTO;
+using bolsafeucn_back.src.Application.DTOs.OfferDTOs;
 using bolsafeucn_back.src.Application.DTOs.PublicationDTO;
+using bolsafeucn_back.src.Application.Services.Implements;
 using bolsafeucn_back.src.Application.Services.Interfaces;
 using bolsafeucn_back.src.Domain.Models;
 using bolsafeucn_back.src.Infrastructure.Repositories.Interfaces;
+using Mapster;
+using MapsterMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -23,6 +27,7 @@ namespace bolsafeucn_back.src.API.Controllers
         private readonly IBuySellService _buySellService;
         private readonly IJobApplicationService _jobApplicationService;
         private readonly ILogger<PublicationController> _logger;
+        private readonly IPublicationRepository _publicationRepository;
 
         public PublicationController(
             IPublicationService publicationService,
@@ -30,7 +35,8 @@ namespace bolsafeucn_back.src.API.Controllers
             IOfferService offerService,
             IBuySellService buySellService,
             IJobApplicationService jobApplicationService,
-            ILogger<PublicationController> logger
+            ILogger<PublicationController> logger,
+            IPublicationRepository publicationRepository
         )
         {
             _publicationService = publicationService;
@@ -39,6 +45,7 @@ namespace bolsafeucn_back.src.API.Controllers
             _buySellService = buySellService;
             _jobApplicationService = jobApplicationService;
             _logger = logger;
+            _publicationRepository = publicationRepository;
         }
 
         #region Crear Publicaciones (Requiere autenticación)
@@ -72,15 +79,26 @@ namespace bolsafeucn_back.src.API.Controllers
             }
 
             _logger.LogInformation("Usuario {UserId} creando oferta: {Title}", userId, dto.Title);
-            var response = await _publicationService.CreateOfferAsync(dto, currentUser);
-
-            if (response == null)
+            try
             {
-                _logger.LogError("Error al crear oferta para usuario {UserId}", userId);
-                return BadRequest(new GenericResponse<object>("Error al crear la oferta"));
+                var response = await _publicationService.CreateOfferAsync(dto, currentUser);
+                return Ok(response);
             }
-
-            return Ok(response);
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogWarning(ex, "Intento de publicación sin rol autorizado.");
+                return StatusCode(403, new GenericResponse<object>(ex.Message));
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "Validación de negocio fallida.");
+                return BadRequest(new GenericResponse<object>(ex.Message));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error interno al crear publicación de oferta.");
+                return StatusCode(500, new GenericResponse<object>("Error interno al crear la publicación."));
+            }
         }
 
         /// <summary>
@@ -118,18 +136,258 @@ namespace bolsafeucn_back.src.API.Controllers
                 userId,
                 dto.Title
             );
-            var response = await _publicationService.CreateBuySellAsync(dto, currentUser);
-
-            if (response == null)
+            try
             {
-                _logger.LogError(
-                    "Error al crear publicación de compra/venta para usuario {UserId}",
-                    userId
-                );
-                return BadRequest(new GenericResponse<object>("Error al crear la publicación"));
+                var response = await _publicationService.CreateBuySellAsync(dto, currentUser);
+                return Ok(response);
             }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogWarning(ex, "Intento de publicación sin rol autorizado.");
+                return StatusCode(403, new GenericResponse<object>(ex.Message));
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "Validación de negocio fallida.");
+                return BadRequest(new GenericResponse<object>(ex.Message));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error interno al crear publicación de compra/venta.");
+                return StatusCode(500, new GenericResponse<object>("Error interno al crear la publicación."));
+            }
+        }
 
-            return Ok(response);
+        #endregion
+
+        #region Obtiene publicaciones y mas (admin)
+
+        /// <summary>
+        /// Obtiene todas las ofertas pendientes de validación solo disponibles para admin
+        /// </summary>
+        [Authorize(Roles = "Admin")]
+        [HttpGet("offers/pending")]
+        public async Task<IActionResult> GetPendingOffersForAdmin()
+        {
+            var offer = await _offerService.GetPendingOffersAsync();
+            if (offer == null)
+            {
+                return NotFound(new GenericResponse<string>("No hay ofertas pendientes", null));
+            }
+            return Ok(
+                new GenericResponse<IEnumerable<PendingOffersForAdminDto>>(
+                    "Ofertas pendientes obtenidas",
+                    offer
+                )
+            );
+        }
+
+        /// <summary>
+        /// Obtiene todas las publicaciones de compra/venta pendientes de validación solo disponibles para admin
+        /// </summary>
+        /// TODO: arreglar endpoint porque entrega mas informacion de la necesaria
+        [Authorize(Roles = "Admin")]
+        [HttpGet("buysells/pending")]
+        public async Task<IActionResult> GetPendingBuySellsForAdmin()
+        {
+            var buySell = await _buySellService.GetAllPendingBuySellsAsync();
+            if (buySell == null)
+            {
+                return NotFound(new GenericResponse<string>("No hay publicaciones de compra/venta pendientes", null));
+            }
+            return Ok(new GenericResponse<IEnumerable<BuySellSummaryDto>>("Publicaciones de compra/venta pendientes obtenidas", buySell));
+        }
+
+        /// <summary>
+        /// Obtiene todas las ofertas publicadas solo disponibles para admin
+        /// </summary>
+        [Authorize(Roles = "Admin")]
+        [HttpGet("offers/published")]
+        public async Task<IActionResult> GetPublishedOffersForAdmin()
+        {
+            var offer = await _offerService.GetPublishedOffersAsync();
+            if (offer == null)
+            {
+                return NotFound(new GenericResponse<string>("No hay ofertas publicadas", null));
+            }
+            return Ok(
+                new GenericResponse<IEnumerable<OfferBasicAdminDto>>(
+                    "Ofertas publicadas obtenidas",
+                    offer
+                )
+            );
+        }
+
+        /// <summary>
+        /// Obtiene todas las compra y venta publicadas solo disponibles para admin
+        /// </summary>
+        [Authorize(Roles = "Admin")]
+        [HttpGet("buysells/published")]
+        public async Task<IActionResult> GetPublishedBuysellsForAdmin()
+        {
+            var buysell = await _buySellService.GetPublishedBuysellsAsync();
+            if (buysell == null)
+            {
+                return NotFound(new GenericResponse<string>("no hay compra y ventas publicadas", null));
+            }
+            return Ok(
+                new GenericResponse<IEnumerable<BuySellBasicAdminDto>>(
+                    "Compra y ventas publicadas obtenidas",
+                    buysell
+                )
+            );
+        }
+
+        #endregion
+
+        #region Administrar ofertas y compra/venta (admin)
+
+        /// <summary>
+        /// Obtiene los detalles de una oferta para la administracion de esta
+        /// </summary>
+        [Authorize(Roles = "Admin")]
+        [HttpGet("offers/{offerId}/details")]
+        public async Task<IActionResult> GetOfferDetailsForAdmin(int offerId)
+        {
+            var offer = await _offerService.GetOfferDetailsForAdminManagement(offerId);
+            if (offer == null)
+            {
+                return NotFound(new GenericResponse<object>("No se encontro la oferta", null));
+            }
+            return Ok(new GenericResponse<OfferDetailsAdminDto>("Informacion basica de oferta recibida con exito.", offer));
+        }
+
+        /// <summary>
+        /// Obtiene una lista de todos los postulantes inscritos a una oferta de trabajo
+        /// </summary>
+        /// TODO: agregar validacion cuando oferta ya fue cerrada
+        [Authorize(Roles = "Admin")]
+        [HttpGet("offers/{offerId}/applicants")]
+        public async Task<IActionResult> GetApplicantsForAdmin(int offerId)
+        {
+            var applicants = await _jobApplicationService.GetApplicantsForAdminManagement(offerId);
+            if (applicants == null)
+            {
+                return NotFound(new GenericResponse<object>("No se encontro la oferta", null));
+            }
+            return Ok(new GenericResponse<IEnumerable<ViewApplicantsDto>>("Lista de postulantes recibida exitosamente.", applicants));
+        }
+
+        /// <summary>
+        /// Obtiene los detalles de un postulante inscrito a una oferta de trabajo
+        /// </summary>
+        [Authorize(Roles = "Admin")]
+        [HttpGet("applications/{studentId}/details")]
+        public async Task<IActionResult> GetApplicantDetailsForAdmin(int studentId)
+        {
+            var applicantDetail = await _jobApplicationService.GetApplicantDetailForAdmin(studentId);
+            if (applicantDetail == null)
+            {
+                return NotFound(new GenericResponse<object>("No se encontro al postulante", null));
+            }
+            return Ok(new GenericResponse<ViewApplicantDetailAdminDto>("Informacion basica de oferta recibida con exito.", applicantDetail));
+        }
+
+        /// <summary>
+        /// Cierra las postulaciones de una oferta de trabajo de parte del admin
+        /// </summary>
+        [Authorize(Roles = "Admin")]
+        [HttpPatch("offers/{offerId}/close")]
+        public async Task<IActionResult> CloseOfferForAdmin(int offerId)
+        {
+            try
+            {
+                await _offerService.GetOfferForAdminToClose(offerId);
+                return Ok(new GenericResponse<object>($"Postulaciones para la oferta {offerId} cerradas con éxito por Admin.", offerId));
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound(new GenericResponse<object>("No se encontro la oferta", null));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(new GenericResponse<object>(ex.Message));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error cerrando oferta ID: {OfferId}", offerId);
+                return StatusCode(500, new GenericResponse<object>("Error interno al cerrar la oferta.", null));
+            }
+        }
+
+        /// <summary>
+        /// Elimina la oferta de trabajo de parte del admin
+        /// </summary>
+        /// TODO: agregar endpoint proximamente para siguiente iteracion
+
+        #endregion
+
+        #region Validar ofertas (admin)
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet("offers/{id}/validation")]
+        public async Task<IActionResult> GetOfferDetailsForOfferValidation(int id)
+        {
+            var offer = await _offerService.GetOfferDetailForOfferValidationAsync(id);
+            if (offer == null)
+            {
+                return NotFound(new GenericResponse<object>("No se encontro al postulante", null));
+            }
+            return Ok(new GenericResponse<OfferDetailValidationDto>("Informacion basica de oferta recibida con exito.", offer));
+        }
+
+        /// <summary>
+        /// Acepta una oferta laboral específica (solo admin)
+        /// </summary>
+        [Authorize(Roles = "Admin")]
+        [HttpPatch("offers/{id}/publish")]
+        public async Task<IActionResult> PublishOffer(int id)
+        {
+            try
+            {
+                await _offerService.GetOfferForAdminToPublish(id);
+                return Ok(new GenericResponse<object>($"Oferta {id} publicada con exito", id));
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound(new GenericResponse<object>("No se encontro la oferta", null));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(new GenericResponse<object>(ex.Message));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error cerrando oferta ID: {OfferId}", id);
+                return StatusCode(500, new GenericResponse<object>("Error interno al cerrar la oferta.", null));
+            }
+        }
+
+        /// </summary>
+        /// Rechaza una oferta laboral específica (solo admin)
+        /// </summary>
+        [Authorize(Roles = "Admin")]
+        [HttpPatch("offers/{id}/reject")]
+        public async Task<IActionResult> RejectOffer(int id)
+        {
+            try
+            {
+                await _offerService.GetOfferForAdminToReject(id);
+                return Ok(new GenericResponse<object>($"Oferta {id} rechazada con exito", id));
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound(new GenericResponse<object>("No se encontro la oferta", null));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(new GenericResponse<object>(ex.Message));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error cerrando oferta ID: {OfferId}", id);
+                return StatusCode(500, new GenericResponse<object>("Error interno al cerrar la oferta.", null));
+            }
         }
 
         #endregion
@@ -407,6 +665,141 @@ namespace bolsafeucn_back.src.API.Controllers
                     500,
                     new GenericResponse<object>("Error al obtener las postulaciones")
                 );
+            }
+        }
+
+        #endregion
+
+
+        #region Obtener Publicaciones por Status(Filtro para Empresa y Particular)
+
+        // Importante para usar el enum
+
+        // ... (dentro de tu clase PublicationController)
+
+        /// <summary>
+        /// Obtiene todas las publicaciones PUBLICADAS del usuario autenticado.
+        /// </summary>
+        [HttpGet("my-published")]
+        [Authorize]
+        public async Task<IActionResult> GetMyPublishedPublications()
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (userId == null)
+                {
+                    _logger.LogWarning("No cuenta con autorización");
+                    return Unauthorized(
+                        new GenericResponse<object>("No autenticado o token inválido")
+                    );
+                }
+
+                var publicationsDto = await _publicationService.GetMyPublishedPublicationsAsync(
+                    userId
+                );
+
+                return Ok(
+                    new GenericResponse<IEnumerable<PublicationsDTO>>(
+                        "Ofertas pendientes obtenidas",
+                        publicationsDto
+                    )
+                );
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogWarning(ex, "Recurso no encontrado");
+                return NotFound(new GenericResponse<object>(ex.Message));
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "Operación inválida");
+                return Conflict(new GenericResponse<object>(ex.Message));
+            }
+        }
+
+        /// <summary>
+        /// Obtiene todas las publicaciones PENDIENTES del usuario autenticado.
+        /// </summary>
+        [HttpGet("my-pending")]
+        [Authorize]
+        public async Task<IActionResult> GetMyPendingPublications()
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (userId == null)
+                {
+                    _logger.LogWarning("No cuenta con autorización");
+                    return Unauthorized(
+                        new GenericResponse<object>("No autenticado o token inválido")
+                    );
+                }
+
+                var publicationsDto = await _publicationService.GetMyPendingPublicationsAsync(
+                    userId
+                );
+
+                return Ok(
+                    new GenericResponse<IEnumerable<PublicationsDTO>>(
+                        "Ofertas pendientes obtenidas",
+                        publicationsDto
+                    )
+                );
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogWarning(ex, "Recurso no encontrado");
+                return NotFound(new GenericResponse<object>(ex.Message));
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "Operación inválida");
+                return Conflict(new GenericResponse<object>(ex.Message));
+            }
+        }
+
+        /// <summary>
+        /// Obtiene todas las publicaciones RECHAZADAS del usuario autenticado.
+        /// </summary>
+        [HttpGet("my-rejected")]
+        [Authorize]
+        public async Task<IActionResult> GetMyRejectedPublications()
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (userId == null)
+                {
+                    _logger.LogWarning("No cuenta con autorización");
+                    return Unauthorized(
+                        new GenericResponse<object>("No autenticado o token inválido")
+                    );
+                }
+
+                var publicationsDto = await _publicationService.GetMyRejectedPublicationsAsync(
+                    userId
+                );
+
+                return Ok(
+                    new GenericResponse<IEnumerable<PublicationsDTO>>(
+                        "Ofertas pendientes obtenidas",
+                        publicationsDto
+                    )
+                );
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogWarning(ex, "Recurso no encontrado");
+                return NotFound(new GenericResponse<object>(ex.Message));
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "Operación inválida");
+                return Conflict(new GenericResponse<object>(ex.Message));
             }
         }
 

@@ -1,3 +1,4 @@
+using Bogus.Bson;
 using bolsafeucn_back.src.Application.DTOs.PublicationDTO;
 using bolsafeucn_back.src.Application.Services.Interfaces;
 using bolsafeucn_back.src.Infrastructure.Repositories.Interfaces;
@@ -98,6 +99,43 @@ namespace bolsafeucn_back.src.Application.Services.Implements
                 );
                 throw;
             }
+        }
+
+        public async Task<IEnumerable<BuySellSummaryDto>> GetAllPendingBuySellsAsync()
+        {
+            _logger.LogInformation("Obteniendo publicaciones de compra/venta pendientes de validación");
+
+            var BuySells = await _buySellRepository.GetAllPendingBuySellsAsync();
+            var result = BuySells.Select(bs => new BuySellSummaryDto
+            {
+                Id = bs.Id,
+                Title = bs.Title,
+                Category = bs.Category,
+                Price = bs.Price,
+                Location = bs.Location,
+                PublicationDate = bs.PublicationDate,
+                FirstImageUrl = bs.Images.FirstOrDefault()?.Url,
+                UserId = bs.UserId,
+                UserName = bs.User.UserName ?? "Usuario",
+            }).ToList();
+            _logger.LogInformation("Publicaciones de compra/venta pendientes obtenidas exitosamente");
+            return result;
+        }
+
+        public async Task<IEnumerable<BuySellBasicAdminDto>> GetPublishedBuysellsAsync()
+        {
+            _logger.LogInformation("Obteniendo publicaciones de compra/venta ya publicadas");
+            var buysell = await _buySellRepository.GetPublishedBuySellsAsync();
+            var result = buysell.Select(bs => new BuySellBasicAdminDto
+            {
+                Title = bs.Title,
+                NameOwner = bs.User.UserName ?? "Usuario",
+                PublicationDate = bs.PublicationDate,
+                Type = bs.Type,
+                Activa = bs.IsActive
+            }).ToList();
+            _logger.LogInformation("Publicaciones de compra/venta publicadas obtenidas exitosamente");
+            return result;
         }
     }
 }
