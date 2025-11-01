@@ -227,4 +227,31 @@ public class OfferService : IOfferService
         offer.IsActive = false;
         await _offerRepository.UpdateOfferAsync(offer);
     }
+
+    public async Task<OfferDetailValidationDto> GetOfferDetailForOfferValidationAsync(int id)
+    {
+        _logger.LogInformation("Obteniendo detalles de la oferta ID: {OfferId}",id);
+        var offer = await _offerRepository.GetByIdAsync(id);
+        if (offer == null)
+        {
+            _logger.LogWarning("Oferta con ID {OfferId} no encontrada", id);
+            throw new KeyNotFoundException($"Offer with id {id} not found");
+        }
+        var ownerName =
+            offer.User?.UserType == UserType.Empresa
+                ? (offer.User.Company?.CompanyName ?? "Empresa desconocida")
+            : offer.User?.UserType == UserType.Particular
+                ? $"{(offer.User.Individual?.Name ?? "").Trim()} {(offer.User.Individual?.LastName ?? "").Trim()}".Trim()
+            : (offer.User?.UserName ?? "UCN");
+        var imageForDTO = offer.Images.Select(i => i.Url).ToList();
+        return new OfferDetailValidationDto
+        {
+            Title = offer.Title,
+            Images = imageForDTO,
+            Description = offer.Description,
+            CompanyName = ownerName,
+            CorreoContacto = offer.ContactInfo,
+            TelefonoContacto = offer.User?.PhoneNumber
+        };
+    }
 }
