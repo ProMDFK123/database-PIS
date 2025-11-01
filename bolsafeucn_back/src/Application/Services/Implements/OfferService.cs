@@ -230,7 +230,7 @@ public class OfferService : IOfferService
 
     public async Task<OfferDetailValidationDto> GetOfferDetailForOfferValidationAsync(int id)
     {
-        _logger.LogInformation("Obteniendo detalles de la oferta ID: {OfferId}",id);
+        _logger.LogInformation("Obteniendo detalles de la oferta ID: {OfferId}", id);
         var offer = await _offerRepository.GetByIdAsync(id);
         if (offer == null)
         {
@@ -253,5 +253,37 @@ public class OfferService : IOfferService
             CorreoContacto = offer.ContactInfo,
             TelefonoContacto = offer.User?.PhoneNumber
         };
+    }
+
+    public async Task GetOfferForAdminToPublish(int id)
+    {
+        var offer = await _offerRepository.GetByIdAsync(id);
+        if (offer == null)
+        {
+            throw new KeyNotFoundException($"La oferta con id {id} no fue encontrada.");
+        }
+        if (offer.statusValidation != StatusValidation.InProcess)
+        {
+            throw new InvalidOperationException($"La oferta con ID {id} ya fue {offer.statusValidation}. No se puede publicar.");
+        }
+        offer.IsActive = true;
+        offer.statusValidation = StatusValidation.Published;
+        await _offerRepository.UpdateOfferAsync(offer);
+    }
+
+    public async Task GetOfferForAdminToReject(int id)
+    {
+        var offer = await _offerRepository.GetByIdAsync(id);
+        if (offer == null)
+        {
+            throw new KeyNotFoundException($"La oferta con id {id} no fue encontrada.");
+        }
+        if (offer.statusValidation != StatusValidation.InProcess)
+        {
+            throw new InvalidOperationException($"La oferta con ID {id} ya fue {offer.statusValidation}. No se puede publicar.");
+        }
+        offer.IsActive = false;
+        offer.statusValidation = StatusValidation.Rejected;
+        await _offerRepository.UpdateOfferAsync(offer);
     }
 }

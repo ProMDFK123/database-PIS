@@ -336,41 +336,56 @@ namespace bolsafeucn_back.src.API.Controllers
         }
 
         /// <summary>
-        /// Valida o rechaza una oferta laboral específica (solo admin)
+        /// Acepta una oferta laboral específica (solo admin)
         /// </summary>
         [Authorize(Roles = "Admin")]
-        [HttpPost("validate/{id}")]
-        public async Task<IActionResult> OfferValidation(
-            int id,
-            [FromBody] OfferValidationDto offerValidationDto
-        )
+        [HttpPatch("offers/{id}/publish")]
+        public async Task<IActionResult> PublishOffer(int id)
         {
-            var offer = await _offerService.GetOfferDetailsAsync(id);
-            if (offer == null)
-                return NotFound("Offer doesn't exist.");
-
-            if (
-                offerValidationDto == null
-                || string.IsNullOrWhiteSpace(offerValidationDto.Accepted)
-            )
-                return BadRequest("Field 'Accepted'  is required, use yes or no");
-
-            var decision = offerValidationDto.Accepted.Trim().ToLower();
-
-            if (decision != "yes" && decision != "no")
-                return BadRequest("The 'Accepted' field must be either 'yes' or 'no'.");
-
-            bool isAccepted = decision == "yes";
-
-            if (isAccepted)
+            try
             {
-                await _offerService.PublishOfferAsync(id);
-                return Ok(new { message = $"Offer {id} has been published successfully." });
+                await _offerService.GetOfferForAdminToPublish(id);
+                return Ok(new GenericResponse<object>($"Oferta {id} publicada con exito", id));
             }
-            else
+            catch (KeyNotFoundException)
             {
-                await _offerService.RejectOfferAsync(id);
-                return Ok(new { message = $"Offer {id} was rejected." });
+                return NotFound(new GenericResponse<object>("No se encontro la oferta", null));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(new GenericResponse<object>(ex.Message));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error cerrando oferta ID: {OfferId}", id);
+                return StatusCode(500, new GenericResponse<object>("Error interno al cerrar la oferta.", null));
+            }
+        }
+
+        /// </summary>
+        /// Rechaza una oferta laboral específica (solo admin)
+        /// </summary>
+        [Authorize(Roles = "Admin")]
+        [HttpPatch("offers/{id}/reject")]
+        public async Task<IActionResult> RejectOffer(int id)
+        {
+            try
+            {
+                await _offerService.GetOfferForAdminToReject(id);
+                return Ok(new GenericResponse<object>($"Oferta {id} rechazada con exito", id));
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound(new GenericResponse<object>("No se encontro la oferta", null));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(new GenericResponse<object>(ex.Message));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error cerrando oferta ID: {OfferId}", id);
+                return StatusCode(500, new GenericResponse<object>("Error interno al cerrar la oferta.", null));
             }
         }
 
